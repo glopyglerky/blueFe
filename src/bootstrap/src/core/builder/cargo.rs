@@ -622,7 +622,14 @@ impl Builder<'_> {
                 cargo
             }
             _ => {
-                let mut cargo = command(&self.initial_cargo);
+                let lustr = self
+                    .out
+                    .join("bluefe-lustr")
+                    .join("debug")
+                    .join(helpers::exe("lustr", self.config.host_target));
+                let mut cargo = command(lustr);
+                cargo.args(["--engine", "auto", "--"]);
+                cargo.env("LUST_CARGO", &self.initial_cargo);
                 cargo.arg(cmd_kind.as_str());
                 cargo
             }

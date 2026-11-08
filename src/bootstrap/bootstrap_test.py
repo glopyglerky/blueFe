@@ -9,6 +9,9 @@ from unittest.mock import patch
 import tempfile
 import hashlib
 import sys
+import json
+import shutil
+import subprocess
 
 from shutil import rmtree
 
@@ -305,6 +308,44 @@ class BuildBootstrap(unittest.TestCase):
         args, _ = self.build_args(env={"CARGOFLAGS": "--timings"})
         self.assertTrue("--timings" in args)
 
+    def test_default_coordinator(self):
+        args, env = self.build_args(env={"LUST_CARGO": "unrelated-cargo"})
+        self.assertEqual(args[1:5], ["--engine", "auto", "--", "build"])
+        suffix = ".exe" if bootstrap.platform_is_win32() else ""
+        self.assertEqual(os.path.basename(args[0]), "lustr" + suffix)
+        self.assertIn("bluefe-lustr", args[0])
+        self.assertNotEqual(env["LUST_CARGO"], "unrelated-cargo")
+
+    def test_coordinator_preserves_custom_cargo(self):
+        cargo = os.environ.get("BOOTSTRAP_TEST_CARGO_BIN")
+        if cargo is None:
+            self.skipTest("requires BOOTSTRAP_TEST_CARGO_BIN")
+        args, env = self.build_args()
+        self.assertEqual(env["LUST_CARGO"], cargo)
+        self.assertNotEqual(args[0], cargo)
+
+    def test_missing_lustr_with_submodules_disabled(self):
+        build = bootstrap.RustBuild(config_toml="[build]\nsubmodules = false\n")
+        with tempfile.TemporaryDirectory() as root:
+            build.rust_root = root
+            with patch.object(bootstrap, "run") as run:
+                with self.assertRaisesRegex(RuntimeError, "pinned src/bluefe/lustr"):
+                    build.build_lustr({})
+                run.assert_not_called()
+
+    def test_initialized_lustr_is_not_reset(self):
+        build = bootstrap.RustBuild()
+        with tempfile.TemporaryDirectory() as root:
+            build.rust_root = root
+            source = os.path.join(root, "src", "bluefe", "lustr")
+            os.makedirs(source)
+            with open(os.path.join(source, ".git"), "w") as git_file:
+                git_file.write("gitdir: preserved-local-source\n")
+            with patch.object(bootstrap, "run") as run:
+                with self.assertRaisesRegex(RuntimeError, "pinned src/bluefe/lustr"):
+                    build.build_lustr({})
+                run.assert_not_called()
+
     def test_warnings(self):
         for toml_warnings in ["false", "true", None]:
             configure_args = []
@@ -316,3 +357,73 @@ class BuildBootstrap(unittest.TestCase):
 
             args, env = self.build_args(configure_args, args=["--warnings=deny"])
             self.assertEqual("deny", env["CARGO_BUILD_WARNINGS"])
+
+
+@unittest.skipUnless(
+    os.environ.get("BLUEFE_TEST_BUILD_ROOT")
+    and os.environ.get("BOOTSTRAP_TEST_CARGO_BIN")
+    and os.environ.get("BOOTSTRAP_TEST_RUSTC_BIN"),
+    "requires an explicit build filesystem and real Cargo/rustc",
+)
+class BluefeRealBootstrap(unittest.TestCase):
+    def setUp(self):
+        self.directory = tempfile.TemporaryDirectory(
+            prefix="bluefe fixture ", dir=os.environ["BLUEFE_TEST_BUILD_ROOT"]
+        )
+        self.addCleanup(self.directory.cleanup)
+        self.root = self.directory.name
+        config = "[build]\ncargo = {}\nrustc = {}\n".format(
+            json.dumps(os.environ["BOOTSTRAP_TEST_CARGO_BIN"]),
+            json.dumps(os.environ["BOOTSTRAP_TEST_RUSTC_BIN"]),
+        )
+        self.build = bootstrap.RustBuild(config_toml=config)
+        self.build.rust_root = self.root
+        self.build.build_dir = os.path.join(self.root, "output with spaces")
+        coordinator = os.path.abspath(
+            os.path.join(bootstrap_dir, "..", "bluefe", "lustr", "tools", "cargo-lust")
+        )
+        shutil.copytree(
+            coordinator,
+            os.path.join(self.root, "src", "bluefe", "lustr", "tools", "cargo-lust"),
+            ignore=shutil.ignore_patterns("target", ".git"),
+        )
+        self.package = os.path.join(self.root, "src", "bootstrap")
+        os.makedirs(os.path.join(self.package, "src"))
+        self.write(
+            "Cargo.toml",
+            '[package]\nname = "bootstrap"\nversion = "0.0.0"\nedition = "2024"\n[workspace]\n',
+        )
+        self.write(
+            "build.rs",
+            'fn main() { println!("cargo:rustc-env=BLUEFE_PROBE=build-script-ok"); }\n',
+        )
+        self.write(
+            "src/main.rs",
+            'fn main() { println!("{}", env!("BLUEFE_PROBE")); }\n',
+        )
+
+    def write(self, name, source):
+        with open(os.path.join(self.package, name), "w", encoding="utf-8") as output:
+            output.write(source)
+
+    def test_real_coordinator_builds_bootstrap(self):
+        self.build.build_bootstrap()
+        output = subprocess.check_output([self.build.bootstrap_binary()])
+        self.assertEqual(output, b"build-script-ok\n")
+        env = {}
+        args = self.build.build_bootstrap_cmd(env)
+        plan = subprocess.check_output(
+            [args[0], "--engine", "auto", "plan"] + args[4:],
+            env=dict(os.environ, **env),
+        )
+        decision = json.loads(plan)
+        self.assertEqual(decision["selected_engine"], "rustc")
+        self.assertEqual(decision["program"], os.environ["BOOTSTRAP_TEST_CARGO_BIN"])
+        self.assertEqual(decision["args"], args[4:])
+
+    def test_real_coordinator_preserves_compiler_failure(self):
+        self.write("src/main.rs", 'fn main() { let value: u8 = "invalid"; }\n')
+        with self.assertRaises(SystemExit) as error:
+            self.build.build_bootstrap()
+        self.assertNotEqual(error.exception.code, 0)
+        self.assertFalse(os.path.exists(self.build.bootstrap_binary()))

@@ -1,3 +1,34 @@
+# blueFe
+
+blueFe is a personal fork of Rust. Its default `./x` build entry point uses the
+[lustr coordinator](https://github.com/glopyglerky/lustr) for bootstrap and ordinary
+compiler, library, and tool Cargo builds. rustc still compiles full Rust and
+bootstrap still selects the compiler for each stage. Native lustr replacement
+of rustc is future work. This integration makes no build-speed claim.
+
+The coordinator is pinned as the `src/bluefe/lustr` submodule. On a Git checkout,
+`./x` initializes that submodule if needed, then builds only its dependency-free
+coordinator with stage0 Cargo, offline and locked. It does not build native Lust
+or install a Cranelift backend. With automatic submodule updates disabled, or
+with a source archive, provide the pinned submodule contents before building.
+
+Use the normal upstream build commands below. Coordinator output goes under
+`<build-dir>/bluefe-lustr`; bootstrap uses the same configured build directory.
+Cargo arguments, stage compilers, flags, profiles, features, and exit failures
+are preserved. Specialized Clippy and Miri launchers and bootstrap's direct
+Cargo metadata/version queries retain their upstream paths. Ordinary `cargo`
+outside bootstrap and the resulting toolchain's default rustc are unchanged.
+
+Validation covers the coordinator and bootstrap command routing on Linux x86_64,
+not a complete compiler build. This upstream snapshot declares Rust 1.102.0 but
+pins stage0 to 1.100.0-beta.1, which bootstrap rejects as too old. Select a
+compatible initial toolchain through the standard `build.cargo` and `build.rustc`
+settings until that upstream pin is reconciled. Full compiler bootstrap remains
+unqualified.
+
+The blueFe integration is LLM-generated fork work and is not intended for
+submission to `rust-lang/rust`. Upstream Rust's README follows.
+
 <div align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/rust-lang/www.rust-lang.org/master/static/images/rust-social-wide-dark.svg">
