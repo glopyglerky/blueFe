@@ -25,15 +25,18 @@ therefore selects a nightly for blueFe's nightly channel. To refresh that pin,
 use `./x run src/tools/bump-stage0 -- COMPILER_DATE RUSTFMT_DATE` and qualify the
 result before publishing it.
 
-To produce a compiler, its native and wasm standard libraries, and rustdoc:
+To produce a compiler, complete native and wasm sysroots, and rustdoc:
 
 ```sh
 ./x build --stage 1 --target x86_64-unknown-linux-gnu,wasm32-unknown-unknown \
-  compiler/rustc library/std src/tools/rustdoc
+  compiler/rustc library src/tools/rustdoc
 ```
 
 Use a build directory on a filesystem with enough space, configured through
-`build.build-dir` in `bootstrap.toml`. Upstream's prerequisite and LLVM setup
+`build.build-dir` in `bootstrap.toml`. Select the whole `library` tree so the
+sysroot includes `proc_macro` and the test harness as well as `std`. Set
+`rust.omit-git-hash = false` to include the source commit in compiler version
+output. Upstream's prerequisite and LLVM setup
 instructions below still apply. The produced native sysroot is
 `<build-dir>/x86_64-unknown-linux-gnu/stage1`; its `bin/rustc` is distinct from
 the downloaded stage0 compiler.
