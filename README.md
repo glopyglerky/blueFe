@@ -19,12 +19,38 @@ are preserved. Specialized Clippy and Miri launchers and bootstrap's direct
 Cargo metadata/version queries retain their upstream paths. Ordinary `cargo`
 outside bootstrap and the resulting toolchain's default rustc are unchanged.
 
-Validation covers the coordinator and bootstrap command routing on Linux x86_64,
-not a complete compiler build. This upstream snapshot declares Rust 1.102.0 but
-pins stage0 to 1.100.0-beta.1, which bootstrap rejects as too old. Select a
-compatible initial toolchain through the standard `build.cargo` and `build.rustc`
-settings until that upstream pin is reconciled. Full compiler bootstrap remains
-unqualified.
+Stage0 is pinned to nightly-2026-11-03, Rust 1.101, with component checksums in
+`src/stage0`. The current beta is too old for this source. The stage0 updater
+therefore selects a nightly for blueFe's nightly channel. To refresh that pin,
+use `./x run src/tools/bump-stage0 -- COMPILER_DATE RUSTFMT_DATE` and qualify the
+result before publishing it.
+
+To produce a compiler, its native and wasm standard libraries, and rustdoc:
+
+```sh
+./x build --stage 1 --target x86_64-unknown-linux-gnu,wasm32-unknown-unknown \
+  compiler/rustc library/std src/tools/rustdoc
+```
+
+Use a build directory on a filesystem with enough space, configured through
+`build.build-dir` in `bootstrap.toml`. Upstream's prerequisite and LLVM setup
+instructions below still apply. The produced native sysroot is
+`<build-dir>/x86_64-unknown-linux-gnu/stage1`; its `bin/rustc` is distinct from
+the downloaded stage0 compiler.
+
+For an application build, select that produced compiler explicitly:
+
+```sh
+RUSTC=/path/to/produced-sysroot/bin/rustc \
+RUSTDOC=/path/to/produced-sysroot/bin/rustdoc \
+LUST_CARGO=/path/to/compatible/cargo \
+  /path/to/lustr --engine auto build --target x86_64-unknown-linux-gnu
+```
+
+`rustc --print sysroot` must identify the produced sysroot. Select
+`wasm32-unknown-unknown` for wasm builds. Native lustr and its separately pinned
+Cranelift/semantic inspection tools are not interchangeable with this compiler;
+their use requires separate compatibility qualification.
 
 The blueFe integration is LLM-generated fork work and is not intended for
 submission to `rust-lang/rust`. Upstream Rust's README follows.
