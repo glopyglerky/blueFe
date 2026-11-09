@@ -6,6 +6,26 @@ compiler, library, and tool Cargo builds. rustc still compiles full Rust and
 bootstrap still selects the compiler for each stage. Native lustr replacement
 of rustc is future work. This integration makes no build-speed claim.
 
+## Use a packaged toolchain
+
+Agents should use a versioned, checksum-verified toolchain from
+[BlueFe releases](https://github.com/glopyglerky/blueFe/releases) instead of
+rebuilding the compiler for each project. No public binary preview is qualified
+yet. The current private candidate passes native and Wasm-link fixtures, but
+embedded private build paths, notice completeness and source binding block its
+publication. A replacement must pass those gates before release.
+
+Once a release is available, extract its complete toolchain into a versioned
+directory and use its bundled `bin/lustr` with `--bluefe-root` pointing there.
+Keep the compiler, sysroot and compiler-private tools from the same release.
+Cargo remains an identified upstream bootstrap component. Application builds
+do not require a BlueFe source checkout or a compiler bootstrap.
+
+See the [integration contract](docs/bluefe/integration-contract.md) and
+[scoped proofs and qualification evidence](docs/bluefe/proofs/README.md).
+
+## Build BlueFe from source
+
 The coordinator is pinned as the root `lustr/` submodule. On a Git checkout,
 `./x` initializes that submodule if needed, then builds only its dependency-free
 coordinator with stage0 Cargo, offline and locked. It does not build native Lust

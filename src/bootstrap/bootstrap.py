@@ -1077,8 +1077,27 @@ class RustBuild(object):
             verbose=self.verbose,
         )
 
+    def check_bluefe_stage0(self):
+        try:
+            output = subprocess.check_output(
+                [self.rustc(), "-vV"], text=True, stderr=subprocess.STDOUT, timeout=15
+            )
+            release = re.search(r"^release: (\d+)\.(\d+)\.", output, re.MULTILINE)
+            with open(os.path.join(self.rust_root, "src", "version"), encoding="utf-8") as source:
+                version = source.read().strip().split(".")
+            minimum = (int(version[0]), int(version[1]) - 1)
+            if release is None or tuple(map(int, release.groups())) < minimum:
+                raise ValueError("compiler is older than the preceding Rust release")
+        except (OSError, subprocess.SubprocessError, ValueError) as error:
+            raise RuntimeError(
+                "BlueFe stage0 preflight failed: {}. Select the pinned nightly or a "
+                "compatible produced compiler with build.rustc and build.cargo; "
+                "no alternate compiler was selected.".format(error)
+            ) from error
+
     def build_bootstrap(self):
         """Build bootstrap"""
+        self.check_bluefe_stage0()
         env = os.environ.copy()
         if "GITHUB_ACTIONS" in env:
             print("::group::Building bootstrap")

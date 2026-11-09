@@ -346,6 +346,28 @@ class BuildBootstrap(unittest.TestCase):
                     build.build_lustr({})
                 run.assert_not_called()
 
+    def test_stage0_version_floor(self):
+        with tempfile.TemporaryDirectory() as root:
+            os.mkdir(os.path.join(root, "src"))
+            with open(os.path.join(root, "src", "version"), "w") as output:
+                output.write("1.102.0\n")
+            build = bootstrap.RustBuild()
+            build.rust_root = root
+            for release in ["1.100.0-beta.2", "1.85.0"]:
+                with patch.object(bootstrap.subprocess, "check_output", return_value="release: " + release + "\n"):
+                    with self.assertRaisesRegex(RuntimeError, "build.rustc"):
+                        build.check_bluefe_stage0()
+            for release in ["1.101.0-nightly", "1.102.0-dev"]:
+                with patch.object(bootstrap.subprocess, "check_output", return_value="release: " + release + "\n") as probe:
+                    build.check_bluefe_stage0()
+                    self.assertEqual(probe.call_args.kwargs["timeout"], 15)
+
+    def test_stage0_probe_failure_is_bounded(self):
+        build = bootstrap.RustBuild()
+        with patch.object(bootstrap.subprocess, "check_output", side_effect=subprocess.TimeoutExpired("rustc", 15)):
+            with self.assertRaisesRegex(RuntimeError, "build.rustc"):
+                build.check_bluefe_stage0()
+
     def test_warnings(self):
         for toml_warnings in ["false", "true", None]:
             configure_args = []
@@ -392,6 +414,8 @@ class BluefeRealBootstrap(unittest.TestCase):
             shutil.copyfile(os.path.join(lustr_root, name), os.path.join(self.root, "lustr", name))
         self.package = os.path.join(self.root, "src", "bootstrap")
         os.makedirs(os.path.join(self.package, "src"))
+        with open(os.path.join(self.root, "src", "version"), "w") as output:
+            output.write("1.102.0\n")
         self.write(
             "Cargo.toml",
             '[package]\nname = "bootstrap"\nversion = "0.0.0"\nedition = "2024"\n[workspace]\n',
@@ -430,3 +454,46 @@ class BluefeRealBootstrap(unittest.TestCase):
             self.build.build_bootstrap()
         self.assertNotEqual(error.exception.code, 0)
         self.assertFalse(os.path.exists(self.build.bootstrap_binary()))
+
+    def test_retained_full_rust_toolchain(self):
+        root = os.environ.get("BLUEFE_TEST_TOOLCHAIN_ROOT")
+        if not root:
+            self.skipTest("requires BLUEFE_TEST_TOOLCHAIN_ROOT")
+        self.write("src/lib.rs", '''/// ```
+/// assert_eq!(bootstrap::answer(), 42);
+/// ```
+pub fn answer() -> u32 { 42 }
+#[test]
+fn panic_runs_drop() {
+    struct Guard<'a>(&'a std::cell::Cell<u32>);
+    impl Drop for Guard<'_> { fn drop(&mut self) { self.0.set(self.0.get() + 1); } }
+    let drops = std::cell::Cell::new(0);
+    let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+        let _guard = Guard(&drops);
+        panic!("fixture");
+    }));
+    assert!(result.is_err());
+    assert_eq!(drops.get(), 1);
+}
+''')
+        self.write("src/main.rs", 'fn main() { assert_eq!(bootstrap::answer(), 42); }\n')
+        env = os.environ.copy()
+        for name in ["RUSTFLAGS", "CARGO_ENCODED_RUSTFLAGS", "RUSTC_WRAPPER", "RUSTC_WORKSPACE_WRAPPER", "CARGO_BUILD_TARGET"]:
+            env.pop(name, None)
+        env.update(CARGO_TARGET_DIR=os.path.join(self.root, "full-rust"), CARGO_BUILD_JOBS="2",
+                   CARGO_HOME=os.path.join(self.root, "cargo-home"))
+        command = [os.path.join(root, "bin", "lustr"), "--bluefe-root", root]
+        plan = json.loads(subprocess.check_output(command + ["plan", "test", "--offline"], env=env))
+        self.assertEqual(plan["program"], os.path.join(root, "bin", "cargo"))
+        self.assertFalse(os.path.exists(env["CARGO_TARGET_DIR"]))
+        for arguments in [["run", "--offline"], ["test", "--offline"],
+                          ["build", "--offline", "--target", "wasm32-unknown-unknown"]]:
+            subprocess.run(command + arguments, cwd=self.package, env=env, check=True, timeout=120)
+        wasm = os.path.join(env["CARGO_TARGET_DIR"], "wasm32-unknown-unknown", "debug", "bootstrap.wasm")
+        with open(wasm, "rb") as artifact:
+            self.assertEqual(artifact.read(8), b"\0asm\x01\0\0\0")
+        self.write("src/main.rs", 'fn main() { let value: u8 = "invalid"; }\n')
+        rejected = subprocess.run(command + ["check", "--offline"], cwd=self.package, env=env,
+                                  stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=120)
+        self.assertNotEqual(rejected.returncode, 0)
+        self.assertIn(b"E0308", rejected.stderr)

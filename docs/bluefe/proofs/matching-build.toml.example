@@ -1,0 +1,20 @@
+change-id = "ignore"
+[build]
+build-dir = "/absolute/build-filesystem/bluefe-matched/build"
+rustc = "/absolute/stage0/bin/rustc"
+cargo = "/absolute/stage0/bin/cargo"
+submodules = false
+patch-binaries-for-nix = false
+locked-deps = true
+jobs = 2
+[llvm]
+download-ci-llvm = true
+[rust]
+download-rustc = false
+lto = "off"
+debuginfo-level = 0
+codegen-units = 256
+incremental = false
+omit-git-hash = false
+remap-debuginfo = true
+codegen-backends = ["llvm", "cranelift"]
