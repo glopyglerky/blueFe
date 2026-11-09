@@ -8,7 +8,7 @@ of rustc is future work. This integration makes no build-speed claim.
 
 ## Use a packaged toolchain
 
-Use [preview-2026.11.09-1](https://github.com/glopyglerky/blueFe/releases/tag/preview-2026.11.09-1)
+Use [preview-2026.11.09-2](https://github.com/glopyglerky/blueFe/releases/tag/preview-2026.11.09-2)
 for Linux x86_64 GNU instead of rebuilding the compiler for each project.
 Download all six assets into a versioned directory outside source checkouts.
 The bundle requires GLIBC 2.39, GLIBCXX_3.4.32 and the libraries recorded in
@@ -17,7 +17,7 @@ files. Other hosts are unqualified.
 
 ```sh
 sha256sum -c SHA256SUMS
-tar --zstd -xf bluefe-lustr-preview-2026.11.09-1-x86_64-unknown-linux-gnu.tar.zst
+tar --zstd -xf bluefe-lustr-preview-2026.11.09-2-x86_64-unknown-linux-gnu.tar.zst
 BLUEFE_ROOT="$(pwd)/bluefe-lustr"
 "$BLUEFE_ROOT/bin/lustr" --bluefe-root "$BLUEFE_ROOT" doctor
 ```
@@ -32,7 +32,7 @@ unwinding. Select optional tools by their bundled absolute paths with explicit
 `CARGO`, `RUSTC` and `RUSTDOC`; an ambient Cargo plugin can select another
 installation. Native Lust/TCC/semantic engines and rustc-dev metadata are absent.
 Native execution and Wasm linking are qualified; Wasm execution is unqualified.
-See the [release record](docs/bluefe/releases/preview-2026.11.09-1.md) for exact
+See the [release record](docs/bluefe/releases/preview-2026.11.09-2.md) for exact
 source bindings, checksums, checks and limits.
 
 See the [integration contract](docs/bluefe/integration-contract.md) and
