@@ -44,16 +44,24 @@ the downloaded stage0 compiler.
 For an application build, select that produced compiler explicitly:
 
 ```sh
-RUSTC=/path/to/produced-sysroot/bin/rustc \
-RUSTDOC=/path/to/produced-sysroot/bin/rustdoc \
-LUST_CARGO=/path/to/compatible/cargo \
-  /path/to/lustr --engine auto build --target x86_64-unknown-linux-gnu
+/path/to/lustr --bluefe-root /path/to/assembled-toolchain \
+  build --target x86_64-unknown-linux-gnu
 ```
+
+The assembled directory must contain `bin/cargo`, `bin/rustc`, `bin/rustdoc`,
+and the produced sysroot libraries. Cargo remains an explicitly identified
+upstream component. The selector preserves project arguments, compiler wrappers,
+flags and profiles; an inherited explicit sysroot override still takes effect.
+Use `lustr --bluefe-root /path/to/assembled-toolchain doctor` to inspect tools.
 
 `rustc --print sysroot` must identify the produced sysroot. Select
 `wasm32-unknown-unknown` for wasm builds. Native lustr and its separately pinned
 Cranelift/semantic inspection tools are not interchangeable with this compiler;
 their use requires separate compatibility qualification.
+
+When explicitly building `compiler/rustc_codegen_cranelift`, bootstrap enables
+its `unwinding` feature. This builds against the same in-tree compiler interfaces.
+It does not select Cranelift for ordinary builds or establish backend qualification.
 
 The blueFe integration is LLM-generated fork work and is not intended for
 submission to `rust-lang/rust`. Upstream Rust's README follows.
