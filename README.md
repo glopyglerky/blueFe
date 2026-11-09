@@ -20,7 +20,7 @@ Cargo metadata/version queries retain their upstream paths. Ordinary `cargo`
 outside bootstrap and the resulting toolchain's default rustc are unchanged.
 
 Stage0 is pinned to nightly-2026-11-03, Rust 1.101, with component checksums in
-`src/stage0`. The current beta is too old for this source. The stage0 updater
+`src/stage0`. At the 2026-11-08 qualification, beta was too old for this source. The stage0 updater
 therefore selects a nightly for blueFe's nightly channel. To refresh that pin,
 use `./x run src/tools/bump-stage0 -- COMPILER_DATE RUSTFMT_DATE` and qualify the
 result before publishing it.
@@ -64,7 +64,7 @@ its `unwinding` feature. This builds against the same in-tree compiler interface
 It does not select Cranelift for ordinary builds or establish backend qualification.
 
 The blueFe integration is LLM-generated fork work and is not intended for
-submission to `rust-lang/rust`. Upstream Rust's README follows.
+submission to `rust-lang/rust`.
 
 ## Source map
 
