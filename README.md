@@ -38,6 +38,27 @@ source bindings, checksums, checks and limits.
 See the [integration contract](docs/bluefe/integration-contract.md) and
 [scoped proofs and qualification evidence](docs/bluefe/proofs/README.md).
 
+## Measured performance
+
+The [2026-11-09 public-repository experiment](https://github.com/glopyglerky/lustr/blob/next/docs/compiler-set/measurements/2026-11-09-shared-v2/README.md)
+recorded 72 timed, dependency-primed metadata-only root checks, plus nine excluded
+warmups. Ratios above 1 favor the denominator lane. N1/N4 compares explicit one
+and four frontend threads on the same preview compiler.
+
+| Project | Stock/N4 | N1/N4 |
+| --- | --- | --- |
+| t3code-ls | 1.268 | 2.345 |
+| gitr | 0.927 | 1.342 |
+| bluefin | 0.923 | 1.802 |
+
+One-thread BlueFe regressed against stock in all three cases. Four-thread BlueFe
+beat stock only on t3code-ls by point estimate. Different compiler/Cargo versions,
+shared-host activity and N1's fixed middle position limit interpretation. Runtime
+gates did not use the timed frontend options. These are not default whole-build
+or general speedup claims. The report retains every regression, conditional
+intervals, exact source/tool hashes, public samples, mathematical assumptions and
+a Rust statistics replay command. Frontend parallelism remains explicit.
+
 ## Build BlueFe from source
 
 The coordinator is pinned as the root `lustr/` submodule. On a Git checkout,
