@@ -1,0 +1,42 @@
+{
+  "schema": 1,
+  "status": "accepted bounded numerical experiment; release separate",
+  "compiler_source": "1b74388e196ee8813f38ba9eeb6d4ab43b6b1071",
+  "coordinator_source": "07470b20464bf097c3c88983124aff56c5e44f9a",
+  "stage": 2,
+  "llvm_source": "0a5579eb649d3634a9c30ac873300cc2944fa070",
+  "measurement_source": "c958a780daf5a700b7fa050d39c3f9c23390c9ce",
+  "candidate_manifest_sha256": "2b0f088a4b4fec511460cf6236cb29054e50736fc52c5fea2f45c4b62ba6dffc",
+  "control_manifest_sha256": "cd7ca233f21093aa3f18be2a6318fe305eeae787b837c00d676079400a6c78e4",
+  "common_cargo_sha256": "16e827eede03ad04b2be898c42ba40ec434fbb6cbbc13fc60354fdf4fd29a36f",
+  "treatment": {
+    "compiler_cgu": [
+      256,
+      16
+    ],
+    "compiler_lto": [
+      "off",
+      "thin"
+    ],
+    "std_cgu": 256,
+    "pgo": false,
+    "scope": "joint package including stage1 preparation and compiler/private native effects"
+  },
+  "profile_sha256": "68d1d95fa19979bb01afac1099c3a7d19ab8079842a29edb0fff7613d05d23d6",
+  "preregistration_sha256": "0fd7b54d921e175c53c2fab44e1907a3e68af303af0c00012b0355dbd05cc335",
+  "raw_analysis_sha256": "9564623bedf495d9aad50ac08345188091e31e3c30f9b8c6b74dd82f9e480f76",
+  "independent_review_receipt_sha256": "6eeca0babafde61593fcb14c222cc4263d5907d97c2bf153201e6fcb81eb4a2c",
+  "aggregate_candidate_control": {
+    "aggregate_p_value": null,
+    "conditional_95": [
+      0.7995234121452539,
+      0.8401447888388247
+    ],
+    "direction": "candidate/control",
+    "point": 0.8209119403216099
+  },
+  "numeric_criteria_pass": true,
+  "resource_scope": "waited CPU; largest waited-process RSS; aggregate RAM/energy UNRUN",
+  "stock_result": "candidate slower by point estimate in all cases; unequal versions",
+  "dataset": "https://github.com/glopyglerky/lustr/blob/next/docs/compiler-set/measurements/2026-11-09-cgu16-thinlto-v3/README.md"
+}

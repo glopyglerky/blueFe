@@ -40,6 +40,17 @@ See the [integration contract](docs/bluefe/integration-contract.md) and
 
 ## Measured performance
 
+The [matched CGU16/ThinLTO stage2 pilot](docs/bluefe/measurements/2026-11-09-cgu16-thinlto/README.md)
+completed 108 timed metadata-only root checks. The optimized package used 17.9%
+less wall time than the matched no-PGO stage2 control, with conditional
+candidate/control interval [0.7995, 0.8401]. It remained slower than stock Rust
+1.99.1 on all three workloads. The stock comparison has unequal toolchain versions.
+Full samples, CPU/scoped RSS, a Rust replay and mathematical arguments are in
+the [Lustr data record](https://github.com/glopyglerky/lustr/blob/next/docs/compiler-set/measurements/2026-11-09-cgu16-thinlto-v3/README.md). The joint compiler-build treatment passed its
+bounded numerical decision; full-build and general speed claims remain unqualified.
+
+### Earlier frontend experiment
+
 The [2026-11-09 public-repository experiment](https://github.com/glopyglerky/lustr/blob/next/docs/compiler-set/measurements/2026-11-09-shared-v2/README.md)
 recorded 72 timed, dependency-primed metadata-only root checks, plus nine excluded
 warmups. Ratios above 1 favor the denominator lane. N1/N4 compares explicit one

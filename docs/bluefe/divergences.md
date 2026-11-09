@@ -37,3 +37,14 @@ and failures with each delivered toolchain.
 This is personal fork work. Generated changes are not intended for
 rust-lang/rust pull requests. The inherited source and its licensing remain
 preserved; the upstream project does not own BlueFe's product claims.
+
+## Optional optimized stage2 configuration
+
+The [CGU16/ThinLTO record](measurements/2026-11-09-cgu16-thinlto/README.md)
+documents the effective compiler-build treatment and retained control. This is
+an explicit profile, not a global change to upstream bootstrap defaults or
+Lustr's frontend/backend routing. Standard-library CGU remains 256. Native build
+and preparation effects prevent separate attribution to either compiler setting.
+The fixed metadata-only pilot passed; stock Rust remained faster in its unequal-
+version comparison. Full-build evidence, other hosts and release packaging are
+separate qualifications. PGO's unresolved diagnostic gate remains independent.

@@ -1,0 +1,25 @@
+# Normalized effective experiment profile. Supply a writable /build outside source.
+# This records settings, not a complete input closure or bit-reproduction promise.
+change-id = "ignore"
+[build]
+build-dir = "/build/obj"
+submodules = false
+patch-binaries-for-nix = false
+locked-deps = true
+jobs = 2
+profiler = true
+[llvm]
+download-ci-llvm = true
+[rust]
+deny-warnings = false
+download-rustc = false
+lto = "thin"
+debuginfo-level = 0
+codegen-units = 16
+codegen-units-std = 256
+incremental = false
+omit-git-hash = false
+remap-debuginfo = true
+codegen-backends = ["llvm", "cranelift"]
+[target.wasm32-unknown-unknown]
+profiler = false

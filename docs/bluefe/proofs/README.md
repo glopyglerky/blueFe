@@ -86,3 +86,12 @@ The [stage2 PGO checkpoint](../measurements/2026-11-09-pgo/README.md)
 contains separate, conditional arguments about profile aggregation and the
 limits of missing-counter evidence. They establish neither compiler correctness
 nor a PGO speedup. Its diagnostic gate remains pending.
+
+## Matched CGU16 and ThinLTO study
+
+The [study record](../measurements/2026-11-09-cgu16-thinlto/README.md) links
+108 timed observations, independent numerical review and the
+[paired/aggregate, position, RSS and amortization arguments](https://github.com/glopyglerky/lustr/blob/next/docs/compiler-set/proofs/cgu16-thinlto.md).
+The measured joint configuration improves this fixed metadata-only workload set
+against the matched control. Stock remained faster. Compiler correctness,
+separate knob effects, aggregate RAM and general/full-build speed are unproved.
