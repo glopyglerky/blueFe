@@ -1,7 +1,11 @@
 # Matching component build recipe
 
-Status: prepared, not executed. The replacement producer build takes precedence
-over workload timing. Use one owned build root and preserve accepted payloads.
+Status: the matched producer build completed for
+[preview-2026.11.09-1](../releases/preview-2026.11.09-1.md). Its compiler,
+both sysroots, Clippy, rustfmt, Cranelift with unwinding and coordinator passed
+the recorded gates. This template is contributor guidance, not a requirement
+for agents using the prebuilt release. Use one owned build root and preserve
+accepted payloads.
 
 Use a clean/reviewed source snapshot after the final Lustr gitlink update. Record
 `git rev-parse HEAD`, `git diff --binary` hash, `git submodule status --recursive`,
@@ -22,12 +26,14 @@ old accepted compiler without a full ABI/qualification argument.
 Exact build invocations from the source root (CONFIG is the completed template):
 
 ```sh
-./x --config "$CONFIG" build --stage 1 compiler/rustc library src/tools/rustdoc src/tools/clippy src/tools/rustfmt compiler/rustc_codegen_cranelift
-./x --config "$CONFIG" build --stage 1 library --target wasm32-unknown-unknown
+./x --config "$CONFIG" build --stage 1 --target x86_64-unknown-linux-gnu,wasm32-unknown-unknown compiler/rustc library src/tools/rustdoc src/tools/clippy src/tools/rustfmt rustc_codegen_cranelift
 ```
 
-These commands build one matched stage1 set, including both Clippy binaries.
-They are recipes, not a claimed successful optional-tool build. Inspect the
+These commands describe one matched stage1 set, including both Clippy binaries.
+The preview used the registered `rustc_codegen_cranelift` build alias and a
+combined native/Wasm invocation so both installed sysroots remained present.
+It set `rust.deny-warnings=false` after inherited Clippy stable-feature warnings
+stopped the first attempt; externally maintained source stayed unchanged. Inspect the
 resolved bootstrap plan and component logs before packaging. Preserve source
 failures; request owner integration for external-tool defects rather than patching
 vendored tool source. LLVM is downloaded through existing bootstrap provenance,

@@ -8,18 +8,32 @@ of rustc is future work. This integration makes no build-speed claim.
 
 ## Use a packaged toolchain
 
-Agents should use a versioned, checksum-verified toolchain from
-[BlueFe releases](https://github.com/glopyglerky/blueFe/releases) instead of
-rebuilding the compiler for each project. No public binary preview is qualified
-yet. The current private candidate passes native and Wasm-link fixtures, but
-embedded private build paths, notice completeness and source binding block its
-publication. A replacement must pass those gates before release.
+Use [preview-2026.11.09-1](https://github.com/glopyglerky/blueFe/releases/tag/preview-2026.11.09-1)
+for Linux x86_64 GNU instead of rebuilding the compiler for each project.
+Download all six assets into a versioned directory outside source checkouts.
+The bundle requires GLIBC 2.39, GLIBCXX_3.4.32 and the libraries recorded in
+`platform.json`; native linking also needs a C compiler, linker and development
+files. Other hosts are unqualified.
 
-Once a release is available, extract its complete toolchain into a versioned
-directory and use its bundled `bin/lustr` with `--bluefe-root` pointing there.
-Keep the compiler, sysroot and compiler-private tools from the same release.
-Cargo remains an identified upstream bootstrap component. Application builds
-do not require a BlueFe source checkout or a compiler bootstrap.
+```sh
+sha256sum -c SHA256SUMS
+tar --zstd -xf bluefe-lustr-preview-2026.11.09-1-x86_64-unknown-linux-gnu.tar.zst
+BLUEFE_ROOT="$(pwd)/bluefe-lustr"
+"$BLUEFE_ROOT/bin/lustr" --bluefe-root "$BLUEFE_ROOT" doctor
+```
+
+From a Rust project, use that absolute root with `build` or `test`. Keep the
+compiler, sysroot and compiler-private tools together. Cargo is the identified
+upstream bootstrap component. Application builds require no BlueFe source
+checkout, compiler bootstrap, installation or global toolchain change.
+
+The preview includes matching Clippy, rustfmt and experimental Cranelift with
+unwinding. Select optional tools by their bundled absolute paths with explicit
+`CARGO`, `RUSTC` and `RUSTDOC`; an ambient Cargo plugin can select another
+installation. Native Lust/TCC/semantic engines and rustc-dev metadata are absent.
+Native execution and Wasm linking are qualified; Wasm execution is unqualified.
+See the [release record](docs/bluefe/releases/preview-2026.11.09-1.md) for exact
+source bindings, checksums, checks and limits.
 
 See the [integration contract](docs/bluefe/integration-contract.md) and
 [scoped proofs and qualification evidence](docs/bluefe/proofs/README.md).

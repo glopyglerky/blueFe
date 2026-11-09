@@ -17,4 +17,6 @@ codegen-units = 256
 incremental = false
 omit-git-hash = false
 remap-debuginfo = true
+# The pinned Clippy source emits stable-feature warnings with this compiler.
+deny-warnings = false
 codegen-backends = ["llvm", "cranelift"]
