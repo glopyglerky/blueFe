@@ -22,6 +22,12 @@ A different nightly backend or semantic driver is not an interchangeable
 component. LLVM remains the default backend until a faster requested path has
 passed its own qualification.
 
+Compiler optimization experiments retain the working preview as the default
+download. The [stage2 PGO checkpoint](measurements/2026-11-09-pgo/README.md)
+records successful runtime qualification and an unresolved diagnostic gate.
+Profile warnings and missing evidence are retained; an untimed candidate does
+not establish a speed improvement or justify changing the default backend.
+
 Working builds take priority. Independent full-Rust compilation and migration
 toward memory-safe Rust are future goals pursued through measured iteration,
 focused parity tests and preserved rollback. Source movement must keep the

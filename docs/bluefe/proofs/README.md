@@ -81,3 +81,8 @@ or complete third-party notice coverage.
 Test runtime is not benchmark speed evidence. Public workload
 comparisons belong to separately controlled measurements; no historical timing
 is generalized to current BlueFe performance.
+
+The [stage2 PGO checkpoint](../measurements/2026-11-09-pgo/README.md)
+contains separate, conditional arguments about profile aggregation and the
+limits of missing-counter evidence. They establish neither compiler correctness
+nor a PGO speedup. Its diagnostic gate remains pending.

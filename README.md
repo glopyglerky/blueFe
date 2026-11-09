@@ -59,6 +59,11 @@ or general speedup claims. The report retains every regression, conditional
 intervals, exact source/tool hashes, public samples, mathematical assumptions and
 a Rust statistics replay command. Frontend parallelism remains explicit.
 
+The separate [stage2 PGO research checkpoint](docs/bluefe/measurements/2026-11-09-pgo/README.md)
+records a built candidate, passing runtime checks, exact hashes and narrow
+mathematical arguments. Its missing-profile diagnostic gate remains unresolved;
+no PGO timing or speedup is reported, and it does not replace the packaged preview.
+
 ## Build BlueFe from source
 
 The coordinator is pinned as the root `lustr/` submodule. On a Git checkout,
