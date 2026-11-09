@@ -52,6 +52,6 @@
 	url = https://github.com/rust-lang/tpde.git
 	shallow = true
 [submodule "bluefe-lustr"]
-	path = src/bluefe/lustr
+	path = lustr
 	url = https://github.com/glopyglerky/lustr.git
 	shallow = true

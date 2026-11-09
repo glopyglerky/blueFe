@@ -31,7 +31,7 @@ ignore = [
     "library/compiler-builtins",
     "library/portable-simd",
     "library/stdarch",
-    "src/bluefe/lustr",
+    "/lustr/",
     "src/doc/book",
     "src/doc/edition-guide",
     "src/doc/embedded-book",

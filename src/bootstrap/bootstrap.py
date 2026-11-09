@@ -1054,17 +1054,17 @@ class RustBuild(object):
         return os.path.join(self.build_dir, "bluefe-lustr", "debug", "lustr" + suffix)
 
     def build_lustr(self, env):
-        source = os.path.join(self.rust_root, "src", "bluefe", "lustr")
-        manifest = os.path.join(source, "tools", "cargo-lust", "Cargo.toml")
+        source = os.path.join(self.rust_root, "lustr")
+        manifest = os.path.join(source, "crates", "lustr", "Cargo.toml")
         if not os.path.isfile(manifest):
             if (
                 self.get_toml("submodules", "build") == "false"
                 or os.path.exists(os.path.join(source, ".git"))
                 or not os.path.exists(os.path.join(self.rust_root, ".git"))
             ):
-                raise RuntimeError("initialize the pinned src/bluefe/lustr submodule first")
+                raise RuntimeError("initialize the pinned root lustr submodule first")
             run(
-                ["git", "submodule", "update", "--init", "--depth", "1", "--", "src/bluefe/lustr"],
+                ["git", "submodule", "update", "--init", "--depth", "1", "--", "lustr"],
                 cwd=self.rust_root,
                 verbose=self.verbose,
             )

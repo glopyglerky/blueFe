@@ -329,7 +329,7 @@ class BuildBootstrap(unittest.TestCase):
         with tempfile.TemporaryDirectory() as root:
             build.rust_root = root
             with patch.object(bootstrap, "run") as run:
-                with self.assertRaisesRegex(RuntimeError, "pinned src/bluefe/lustr"):
+                with self.assertRaisesRegex(RuntimeError, "pinned root lustr"):
                     build.build_lustr({})
                 run.assert_not_called()
 
@@ -337,12 +337,12 @@ class BuildBootstrap(unittest.TestCase):
         build = bootstrap.RustBuild()
         with tempfile.TemporaryDirectory() as root:
             build.rust_root = root
-            source = os.path.join(root, "src", "bluefe", "lustr")
+            source = os.path.join(root, "lustr")
             os.makedirs(source)
             with open(os.path.join(source, ".git"), "w") as git_file:
                 git_file.write("gitdir: preserved-local-source\n")
             with patch.object(bootstrap, "run") as run:
-                with self.assertRaisesRegex(RuntimeError, "pinned src/bluefe/lustr"):
+                with self.assertRaisesRegex(RuntimeError, "pinned root lustr"):
                     build.build_lustr({})
                 run.assert_not_called()
 
@@ -380,13 +380,16 @@ class BluefeRealBootstrap(unittest.TestCase):
         self.build.rust_root = self.root
         self.build.build_dir = os.path.join(self.root, "output with spaces")
         coordinator = os.path.abspath(
-            os.path.join(bootstrap_dir, "..", "bluefe", "lustr", "tools", "cargo-lust")
+            os.path.join(bootstrap_dir, "..", "..", "lustr", "crates", "lustr")
         )
         shutil.copytree(
             coordinator,
-            os.path.join(self.root, "src", "bluefe", "lustr", "tools", "cargo-lust"),
+            os.path.join(self.root, "lustr", "crates", "lustr"),
             ignore=shutil.ignore_patterns("target", ".git"),
         )
+        lustr_root = os.path.abspath(os.path.join(coordinator, "..", ".."))
+        for name in ["Cargo.toml", "Cargo.lock"]:
+            shutil.copyfile(os.path.join(lustr_root, name), os.path.join(self.root, "lustr", name))
         self.package = os.path.join(self.root, "src", "bootstrap")
         os.makedirs(os.path.join(self.package, "src"))
         self.write(
