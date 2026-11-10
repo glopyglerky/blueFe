@@ -7,7 +7,6 @@ use llvm::get_llvm_build_status;
 use super::*;
 use crate::core::build_steps::llvm::LlvmKind;
 use crate::core::config::Config;
-use crate::core::session::Mode;
 use crate::utils::cache::ExecutedStep;
 use crate::utils::helpers::get_host_target;
 use crate::utils::tests::git::{GitCtx, git_test};
@@ -42,29 +41,6 @@ fn check_cli<const N: usize>(paths: [&str; N]) {
 fn test_valid() {
     // make sure multi suite paths are accepted
     check_cli(["test", "tests/ui/bootstrap/self-test/a.rs", "tests/ui/bootstrap/self-test/b.rs"]);
-}
-
-#[test]
-fn bluefe_cargo_uses_coordinator_and_stage_cargo() {
-    let config = configure("build", &[TEST_TRIPLE_1], &[TEST_TRIPLE_1]);
-    let sess = Session::new(config);
-    let builder = Builder::new(&sess);
-    let target = TargetSelection::from_user(TEST_TRIPLE_1);
-    for kind in [Kind::Build, Kind::Check, Kind::Test, Kind::Doc] {
-        let mut cargo = builder.bare_cargo(Compiler::new(1, target), Mode::Rustc, target, kind);
-        cargo.mark_as_executed();
-        let args: Vec<_> = cargo.get_args().take(4).collect();
-        assert_eq!(args, ["--engine", "auto", "--", kind.as_str()]);
-        assert!(cargo.get_envs().any(|(key, value)| {
-            key == "LUST_CARGO" && value == Some(builder.initial_cargo.as_os_str())
-        }));
-        let executable = builder
-            .out
-            .join("bluefe-lustr")
-            .join("debug")
-            .join(crate::utils::helpers::exe("lustr", builder.config.host_target));
-        assert!(cargo.fingerprint().format_short_cmd().contains(&executable.display().to_string()));
-    }
 }
 
 #[test]

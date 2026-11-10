@@ -17,6 +17,16 @@ Lustr-owned work belongs outside the upstream baseline. Any proposed Lust
 exception requires demonstrated necessity and faster equivalent-workload results.
 See the [preservation policy](https://github.com/glopyglerky/lustr/blob/82d77539680fec9cf822ca8231d1abb985069c48/docs/compiler-set/upstream-lust.md).
 
+## Rust source baseline
+
+The protected Rust implementation now matches upstream
+`5b7b37aefcb5b2fba3c2392bc9065b9e4602d494`. The compiler tree is
+`9bb98adca40010656ac057f2c4103cf72f5cdc6f`; the library tree is
+`f48d6700750a1dc11b2f8f1df91a26dee3ef13fb`. Bootstrap and stage0 are also
+restored to upstream. The [preservation gate](upstream-preservation.md) binds
+all five protected scopes and rejects unqualified source divergence. Existing
+releases keep their earlier source and binary identities.
+
 ## Actual implementation
 
 The compatibility coordinator's `auto` mode selects Cargo/rustc. Native Lust

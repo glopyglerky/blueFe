@@ -14,25 +14,16 @@ claim. No universal speedup or semantic-equivalence theorem is asserted.
 
 ## Invocation and source identity
 
-`./x` remains the bootstrap entry point. Python builds the pinned root Lustr
-crate, then invokes it with `--engine auto -- build ...`. Ordinary Rust bootstrap
-Cargo operations also use Lustr; specialized Clippy and Miri launchers remain
-specialized. The configured bootstrap Cargo is explicitly passed as `LUST_CARGO`.
-Stage0 builds the compiler; it is not the produced compiler.
+The current source restores upstream `./x`, bootstrap and stage0 machinery.
+The earlier coordinator injection and version-floor preflight described in
+historical qualification are removed. The
+[upstream preservation gate](upstream-preservation.md) binds the exact current
+source scopes. Lustr integration belongs outside them. A complete fresh
+bootstrap with the restored inputs has not been qualified here.
 
-Bootstrap initializes a missing root `lustr` manifest through the root gitlink
-only when submodules are enabled and the source is a Git checkout. It refuses to
-reset an initialized but incomplete submodule. Offline/source archives must
-supply the pinned source themselves. Existing initialized submodules must be
-checked against the gitlink before claiming reproducibility; bootstrap does not
-validate their cleanliness or revision. No pointer upgrade is implicit.
-
-The stage0 preflight probes the configured rustc with a 15-second timeout and
-requires its major/minor version to be at least the source's preceding release.
-This rejects known too-old compilers before compiling bootstrap. It is a necessary
-version floor, not proof of feature, ABI, dependency or target compatibility.
-Use the pinned `src/stage0` nightly or a qualified produced compiler. Failures do
-not select an alternate compiler. Toolchain download/setup precedes this probe.
+The retained previews still contain their original separate coordinator and
+produced toolchain. The commands below describe that versioned compatibility
+interface, not automatic native Lust support in those existing assets.
 
 For applications, use an absolute retained toolchain root:
 
@@ -74,7 +65,7 @@ The original compiler build cache was retired. Component-only compilation agains
 this payload is therefore unavailable; never load a backend from another nightly.
 
 [The build recipe](proofs/matching-components.md) prepares a fresh matching
-compiler/component set. Bootstrap already requests cgclif `--features=unwinding`.
+compiler/component set. The earlier fork bootstrap requested cgclif `--features=unwinding`; current upstream bootstrap has no such fork patch.
 Before accepting that backend, run a panic catch/drop test through the actual
 selected backend, plus native run/test/doctest/rejection tests. The LLVM panic test
 in this patch does not qualify cgclif. Wasm remains LLVM unless separately proved.

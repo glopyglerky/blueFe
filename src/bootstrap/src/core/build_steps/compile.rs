@@ -1800,8 +1800,7 @@ impl CommandLineStep for CraneliftCodegenBackend {
         );
         cargo
             .arg("--manifest-path")
-            .arg(builder.src.join("compiler/rustc_codegen_cranelift/Cargo.toml"))
-            .arg("--features=unwinding");
+            .arg(builder.src.join("compiler/rustc_codegen_cranelift/Cargo.toml"));
         apply_dylib_lto(builder, &build_compiler, &mut cargo);
         apply_pgo(builder, &mut cargo, build_compiler, &builder.config.cranelift_pgo);
 

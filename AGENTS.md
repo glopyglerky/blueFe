@@ -1,5 +1,17 @@
 # Agent instructions
 
+## Fork source preservation
+
+Work stays in `glopyglerky/blueFe` and `glopyglerky/lustr`. Follow
+[the upstream preservation policy](docs/bluefe/upstream-preservation.md).
+Protected Rust scopes must match `upstream/rust.pin`; embedded Lust must match
+Lustr's separate pin. Keep project-owned integration outside those scopes.
+Any proposed divergence needs demonstrated necessity and faster equivalent-workload
+results before admission. No hidden overlays or build-time patches. Correctness
+alone is not speed evidence. Run the Rust source guard before publication and
+preserve historical release bindings. The user's fork-only acknowledgment
+applies; nothing here authorizes an upstream submission.
+
 ## LLM usage policy
 
 Follow the Rust project's [LLM usage policy]. It applies to all LLM-generated

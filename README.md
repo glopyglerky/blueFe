@@ -5,12 +5,14 @@ The required compiler is a complete rustc replacement: Lustr must contain
 unchanged upstream Lust, use it for everything it supports, and supply the
 remaining Rust support in Lustr-owned code. That replacement is incomplete.
 
-The current `./x` entry point uses the separate compatibility coordinator for
-bootstrap and ordinary compiler, library and tool Cargo builds. rustc still
-compiles full Rust, and bootstrap selects the stage compiler. The source pin
-now preserves the exact upstream Lust tree and includes a CI drift guard;
-this does not add automatic native compilation to existing release binaries.
-See the [native integration status](docs/bluefe/native-lustr-status.md).
+The protected Rust compiler, standard library and bootstrap now match upstream
+`5b7b37aefcb5b2fba3c2392bc9065b9e4602d494`. Earlier compiler compatibility edits
+and bootstrap coordinator hooks have been removed. `./x` uses upstream bootstrap;
+Lustr integration belongs outside that implementation. The
+[upstream preservation gate](docs/bluefe/upstream-preservation.md) requires both
+necessity and faster equivalent-workload evidence for any future divergence.
+This source checkpoint does not replace existing release assets. See the
+[native integration status](docs/bluefe/native-lustr-status.md).
 
 ## Use a packaged toolchain
 
@@ -85,24 +87,18 @@ no PGO timing or speedup is reported, and it does not replace the packaged previ
 
 ## Build BlueFe from source
 
-The coordinator is pinned as the root `lustr/` submodule. On a Git checkout,
-`./x` initializes that submodule if needed, then builds only its dependency-free
-coordinator with stage0 Cargo, offline and locked. It does not build native Lust
-or install a Cranelift backend. With automatic submodule updates disabled, or
-with a source archive, provide the pinned submodule contents before building.
+Lustr is pinned as the root `lustr/` submodule. Its source and integration remain
+separate from the protected upstream compiler and bootstrap. Initialize required
+submodules explicitly and use upstream's normal build configuration. `./x` no
+longer builds or inserts the compatibility coordinator into each Cargo call.
 
-Use the normal upstream build commands below. Coordinator output goes under
-`<build-dir>/bluefe-lustr`; bootstrap uses the same configured build directory.
-Cargo arguments, stage compilers, flags, profiles, features, and exit failures
-are preserved. Specialized Clippy and Miri launchers and bootstrap's direct
-Cargo metadata/version queries retain their upstream paths. Ordinary `cargo`
-outside bootstrap and the resulting toolchain's default rustc are unchanged.
-
-Stage0 is pinned to nightly-2026-11-03, Rust 1.101, with component checksums in
-`src/stage0`. At the 2026-11-08 qualification, beta was too old for this source. The stage0 updater
-therefore selects a nightly for blueFe's nightly channel. To refresh that pin,
-use `./x run src/tools/bump-stage0 -- COMPILER_DATE RUSTFMT_DATE` and qualify the
-result before publishing it.
+The upstream stage0 data and generator are restored byte for byte. Their beta
+pin is dated 2026-09-29. The previous fork's version-floor heuristic and nightly
+substitution are removed. A date or major/minor comparison alone does not prove
+bootstrap compatibility. A fresh complete bootstrap with these restored inputs
+has not been qualified here; retained binaries keep their versioned provenance.
+Any necessary replacement build input needs an actual failing-first check and
+qualification, without concealing changes to the compiler implementation.
 
 To produce a compiler, complete native and wasm sysroots, and rustdoc:
 
@@ -138,9 +134,10 @@ Use `lustr --bluefe-root /path/to/assembled-toolchain doctor` to inspect tools.
 Cranelift/semantic inspection tools are not interchangeable with this compiler;
 their use requires separate compatibility qualification.
 
-When explicitly building `compiler/rustc_codegen_cranelift`, bootstrap enables
-its `unwinding` feature. This builds against the same in-tree compiler interfaces.
-It does not select Cranelift for ordinary builds or establish backend qualification.
+Optional codegen backends need explicit upstream build options and matching
+compiler, sysroot and runtime qualification. Bootstrap has no fork-specific
+unwinding or coordinator patch at this checkpoint. Historical qualified backend
+recipes and release evidence retain their original scope.
 
 The blueFe integration is LLM-generated fork work and is not intended for
 submission to `rust-lang/rust`.
@@ -149,11 +146,12 @@ submission to `rust-lang/rust`.
 
 | Path | Role |
 | --- | --- |
-| `lustr/` | Pinned Lustr project. Its primary crate is `crates/lustr`; bootstrap builds it without native compiler dependencies. |
-| `compiler/` | The current BlueFe compiler implementation, inherited from Rust and maintained as this fork. |
+| `lustr/` | Pinned Lustr project. Compiler integration is owned here; upstream bootstrap does not build the coordinator. |
+| `compiler/` | Protected, unchanged upstream Rust compiler implementation. |
 | `library/` | Standard libraries produced for the selected native and WebAssembly targets. |
-| `src/bootstrap/` and `x` | Required bootstrap machinery, including BlueFe's coordinator routing and compiler-component integration. |
+| `src/bootstrap/` and `x` | Unchanged upstream bootstrap machinery. |
 | `docs/bluefe/` | Project decisions, source-layout exceptions, divergence and qualification records. |
+| `upstream/rust.pin` and `tools/bluefe-rust-upstream-check.rs` | Upstream identities and a source-drift guard. |
 
 The inherited compiler and bootstrap paths remain because upstream build,
 qualification and synchronization contracts use them. This repository has one

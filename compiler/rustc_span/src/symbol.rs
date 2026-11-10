@@ -3002,8 +3002,8 @@ pub mod kw {
 #[cfg_attr(
     bootstrap,
     diagnostic::on_unknown(
-        label = "`{this}` is not a pre-interned symbol",
-        note = "consider adding `{this}` to the `symbols!` invocation in compiler/rustc_span/src/symbol.rs"
+        label = "`{Unresolved}` is not a pre-interned symbol",
+        note = "consider adding `{Unresolved}` to the `symbols!` invocation in compiler/rustc_span/src/symbol.rs"
     )
 )]
 #[cfg_attr(
