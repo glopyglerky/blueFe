@@ -1,10 +1,16 @@
 # blueFe
 
-blueFe is a personal fork of Rust. Its default `./x` build entry point uses the
-[lustr coordinator](https://github.com/glopyglerky/lustr) for bootstrap and ordinary
-compiler, library, and tool Cargo builds. rustc still compiles full Rust and
-bootstrap still selects the compiler for each stage. Native lustr replacement
-of rustc is future work. This integration makes no build-speed claim.
+blueFe is a fork of Rust integrating [Lustr](https://github.com/glopyglerky/lustr).
+The required compiler is a complete rustc replacement: Lustr must contain
+unchanged upstream Lust, use it for everything it supports, and supply the
+remaining Rust support in Lustr-owned code. That replacement is incomplete.
+
+The current `./x` entry point uses the separate compatibility coordinator for
+bootstrap and ordinary compiler, library and tool Cargo builds. rustc still
+compiles full Rust, and bootstrap selects the stage compiler. The source pin
+now preserves the exact upstream Lust tree and includes a CI drift guard;
+this does not add automatic native compilation to existing release binaries.
+See the [native integration status](docs/bluefe/native-lustr-status.md).
 
 ## Use a packaged toolchain
 
@@ -32,6 +38,8 @@ unwinding. Select optional tools by their bundled absolute paths with explicit
 `CARGO`, `RUSTC` and `RUSTDOC`; an ambient Cargo plugin can select another
 installation. Native Lust/TCC/semantic engines and rustc-dev metadata are absent.
 Native execution and Wasm linking are qualified; Wasm execution is unqualified.
+This package does not implement the required native Lustr replacement. Its
+compiler-build measurements do not measure Lust's native acceleration.
 See the [release record](docs/bluefe/releases/preview-2026.11.09-2.md) for exact
 source bindings, checksums, checks and limits.
 

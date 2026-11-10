@@ -1,5 +1,11 @@
 # BlueFe integration contract
 
+This records the transitional compatibility integration. The
+[native Lustr requirement and current gaps](native-lustr-status.md) supersede
+any interpretation that this coordinator completes the project. For the latest
+published artifact, use the [versioned preview record](releases/preview-2026.11.09-2.md);
+the earlier payload qualification below retains its original identities and scope.
+
 This contract describes BlueFe control and packaging, not a new implementation
 of Rust semantics. Full Rust is compiled by produced rustc behind Lustr. Native
 Lust is a separate, restricted compiler. LLVM, TCC, native libraries, upstream
@@ -43,7 +49,7 @@ ABI or a complete sysroot. External Cargo configuration, wrappers, flags,
 build scripts and linker settings still participate; inspect them for acceptance.
 Do not describe an uncontrolled invocation as produced-compiler evidence.
 
-## Current retained payload
+## Earlier retained payload qualification
 
 The evidence in [proofs](proofs/README.md) identifies compiler source
 `7005dc02c9fb6674380eade443022bbc04215276`, BlueFe control source
@@ -62,7 +68,7 @@ Clippy, rustfmt and cgclif must match compiler-private interfaces, build feature
 target and native-library closure. A similar version string or identical public
 compiler source tree is insufficient. Their source trees are embedded upstream
 subtrees; do not edit those tools here or advance their integration automatically.
-The current payload lacks all three components and rustc-dev metadata. It has a
+That earlier payload lacks all three components and rustc-dev metadata. It has a
 runtime rustc_driver shared library, which does not supply private crate metadata.
 The original compiler build cache was retired. Component-only compilation against
 this payload is therefore unavailable; never load a backend from another nightly.
