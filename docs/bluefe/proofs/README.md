@@ -1,5 +1,13 @@
 # Integration proofs and executable evidence
 
+This page records the earlier coordinator/bootstrap integration. Its compiler
+and toolchain identities are fixed in [integration-evidence.json](integration-evidence.json).
+The upstream restoration at `f0f00135` removed the custom bootstrap hooks,
+version-floor preflight and their tests from the current branch. The arguments
+and commands below apply to those historical implementations; they do not
+qualify the current pristine-source build. Current build qualification uses the
+[pristine package workflow](../pristine-package.md).
+
 These are mathematical arguments about the control program under explicit
 assumptions, backed by small regression/conformance tests. They are not
 machine-checked compiler correctness proofs or performance results.
@@ -47,15 +55,17 @@ The optional `frontend_jobs` transformation has its own
 It applies only to explicit Cargo `rustc` requests. A scheduling parameter does
 not establish compiler correctness or a speedup on an unmeasured workload.
 
-Executable coverage is in `src/bootstrap/bootstrap_test.py`: coordinator command
+Historical executable coverage was in `src/bootstrap/bootstrap_test.py`: coordinator command
 selection; preservation of explicit Cargo; missing/initialized submodule refusal;
 stage0 version and timeout checks; real bootstrap build and compiler rejection;
 and a retained full-Rust fixture. The latter checks pure planning, native run,
 unit panic recovery with exactly one destructor call, doctest execution, type-error
 rejection, and Wasm header/link output. Wasm runtime behavior is not observed.
 
-Run from the repository root, with absolute toolchain/build paths on a build
-filesystem (no heavy compiler build is started):
+The historical test command below requires the matching source revision and
+toolchain from the evidence record. Running it on current main does not restore
+or execute the removed integration tests. It used absolute toolchain/build paths
+on a build filesystem without starting a heavy compiler build:
 
 ```sh
 PYTHONDONTWRITEBYTECODE=1 CARGO_BUILD_JOBS=2 \

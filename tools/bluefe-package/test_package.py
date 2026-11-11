@@ -23,6 +23,7 @@ class PackageTests(unittest.TestCase):
         config = tomllib.loads(package.build_configuration(Path('/tmp/work with "quotes"/build')))
         self.assertFalse(config["rust"]["download-rustc"])
         self.assertTrue(config["llvm"]["download-ci-llvm"])
+        self.assertTrue(config["build"]["locked-deps"])
         self.assertEqual(config["build"]["build-dir"], '/tmp/work with "quotes"/build')
         self.assertNotIn("rustc", config["build"])
         self.assertNotIn("cargo", config["build"])

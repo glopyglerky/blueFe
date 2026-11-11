@@ -74,7 +74,7 @@ def build_configuration(build_dir):
         "host = [" + json.dumps(TARGET) + "]",
         "target = [" + json.dumps(TARGET) + "]",
         "build-dir = " + json.dumps(str(build_dir)),
-        "jobs = 2", "docs = false", "submodules = false", "extended = true",
+        "jobs = 2", "docs = false", "submodules = false", "extended = true", "locked-deps = true",
         'tools = ["cargo", "rustdoc"]', "full-bootstrap = false", "",
         "[llvm]", "download-ci-llvm = true", "assertions = false", "",
         "[rust]", "download-rustc = false", "optimize = true", "debug = false",
