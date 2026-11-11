@@ -13,7 +13,7 @@ claimed by this packaging workflow.
 
 After the Rust component qualifies, a separate job checks out the exact Lustr
 commit recorded in the workflow and builds its unchanged native Lust compiler,
-TinyCC runtime and coordinator. It combines those with this newly built BlueFe
+Lust client and TinyCC runtime. It combines those with this newly built BlueFe
 component, validates the BlueFe manifest against the actual compiler identity
 and binary hashes, and runs the Lustr package's relocation, runtime, rejection
 and native coverage gates. A combined archive is uploaded only after those
@@ -22,11 +22,29 @@ combined-package job fails.
 
 The combined artifact is named `bluefe-lustr-native-preview-x86_64-<commit>`.
 Its archive extracts to `bluefe-lustr-native-preview-x86_64-unknown-linux-gnu`.
-Use `bin/lustr --engine lust` for the existing native subset, and
-`bin/lustr --bluefe-root <absolute-package-root> --engine rustc` for the packaged
-BlueFe compatibility path. The combined preview still records incomplete native
-Rust coverage; packaging does not convert a compatibility route into a new
-native implementation.
+Native compilation calls Lust directly; Cargo selects the packaged Rust compiler
+through its standard `RUSTC` and `RUSTDOC` inputs. The package contains no Lustr
+coordinator executables and records `runtime_coordinator: false`.
+
+```sh
+LUSTR_ROOT=/absolute/path/to/bluefe-lustr-native-preview-x86_64-unknown-linux-gnu
+"$LUSTR_ROOT/bin/lust" build main.rs -o app
+
+# Run in a Cargo project with a lockfile.
+RUSTC="$LUSTR_ROOT/bin/rustc" RUSTDOC="$LUSTR_ROOT/bin/rustdoc" \
+  "$LUSTR_ROOT/bin/cargo" test --locked
+```
+
+Native Lust does not yet implement rustc's complete command and rlib artifact
+contracts, so it cannot be selected as Cargo's general-purpose `RUSTC` replacement.
+The combined preview records incomplete native Rust coverage. Its full Rust
+compatibility comes from the packaged unchanged Rust compiler.
+
+The pinned Lust baseline also has a confirmed external-input cache invalidation
+defect involving whitespace or comments before the macro `!`. Read the
+[known native cache limitation and scoped workaround](https://github.com/glopyglerky/lustr/blob/ec89ca9342f50c77d2e1fd2ced2fc0c87829faab/docs/compiler-set/native-package.md#known-native-cache-limitation)
+before using affected inputs. This package preserves the upstream source and
+cache defaults; the defect remains unfixed.
 
 ## Build and source boundaries
 
@@ -38,6 +56,14 @@ The necessary Cargo and backtrace submodules are initialized, together with the
 book, reference and rustc-perf submodules required by upstream distribution's
 copyright/dependency collection. LLVM source is not initialized, so a missing
 CI artifact cannot silently become a full LLVM source build.
+
+The separate `Assemble qualified BlueFe and Lustr` workflow can reuse an existing
+successful component build. It runs on `package/qualified-native*` branch pushes
+that change its workflow file, or a manual dispatch with immutable component and
+Lustr revisions. It requires the selected component job to have succeeded, then
+checks its run/source binding, complete payload manifest, actual tool hashes and
+versions, and relocated sysroot before building and qualifying native Lust.
+Its job has a 45-minute limit.
 
 The build uses supported options in `bootstrap.example.toml`, with all output
 and generated configuration outside source. It uses two build jobs, optimized
@@ -77,8 +103,23 @@ not a qualified package.
 The package artifact contains a `.tar.gz` archive, `SHA256SUMS`, the exact
 bootstrap configuration, a payload manifest and source/qualification metadata.
 The compiler's upstream distribution licenses and notices remain included.
-The host scope is the Ubuntu 24.04 Linux GNU x86_64 runner; a working native
-linker, headers and system development libraries are still required.
+The host scope is Ubuntu 24.04 Linux GNU x86_64. Inspection of the
+[qualified component](https://github.com/glopyglerky/blueFe/actions/runs/42977397326/artifacts/13837825042)
+shows that Cargo and the Rust driver require glibc 2.39, and the driver requires
+`libstdc++.so.6` providing `GLIBCXX_3.4.32`. Cargo dynamically links OpenSSL 3
+through `libssl.so.3` and `libcrypto.so.3`, libcurl through `libcurl.so.4`, and
+zlib through `libz.so.1`. These system libraries and their transitive dependencies are
+required alongside the native linker and C development headers. The package
+includes its Rust driver and LLVM libraries.
+
+Install the dependencies used by the qualified Ubuntu 24.04 build with:
+
+```sh
+sudo apt-get update
+sudo apt-get install build-essential libssl-dev libcurl4-openssl-dev zlib1g-dev ca-certificates
+```
+
+An older glibc host is outside this artifact's supported scope.
 
 Download the artifact belonging to the desired successful workflow commit into
 a new directory, then run:

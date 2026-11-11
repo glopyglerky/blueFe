@@ -17,7 +17,7 @@ on:
       lustr_revision:
         description: Exact Lustr source commit to package
         type: string
-        default: 6e78cfef2d8b2f1a58aea458500d35371cb1b6c8
+        default: ec89ca9342f50c77d2e1fd2ced2fc0c87829faab
 
 permissions:
   contents: read
@@ -38,7 +38,7 @@ jobs:
     env:
       COMPONENT_RUN_ID: ${{ inputs.component_run_id || '42977397326' }}
       COMPONENT_REVISION: ${{ inputs.component_revision || 'e091741964e51bc70fc61b1dc14c382809bf8410' }}
-      LUSTR_REVISION: ${{ inputs.lustr_revision || '6e78cfef2d8b2f1a58aea458500d35371cb1b6c8' }}
+      LUSTR_REVISION: ${{ inputs.lustr_revision || 'ec89ca9342f50c77d2e1fd2ced2fc0c87829faab' }}
       RUSTUP_TOOLCHAIN: 1.99.1
       PYTHONDONTWRITEBYTECODE: '1'
     steps:
@@ -190,7 +190,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y build-essential pkg-config
           rustup toolchain install 1.99.1 --profile minimal
-      - name: Verify unchanged Lust and build both entry points
+      - name: Verify unchanged Lust and build native compiler
         working-directory: lustr
         run: |
           test "$(git rev-parse HEAD)" = "$LUSTR_REVISION"
@@ -198,8 +198,6 @@ jobs:
           "$RUNNER_TEMP/lust-upstream-check"
           compiler/native/scripts/build-tcc.sh
           cargo build --manifest-path compiler/native/Cargo.toml --release --locked
-          cargo test --workspace --locked --offline
-          cargo build --workspace --release --locked --offline
           cargo vendor --manifest-path compiler/native/Cargo.toml --locked --offline \
             "$RUNNER_TEMP/native-vendor" > "$RUNNER_TEMP/native-vendor-config.toml"
       - name: Assemble the combined compiler package
@@ -208,7 +206,6 @@ jobs:
           python3 tools/package-toolchain.py \
             --output dist/bluefe-lustr-native-preview-x86_64-unknown-linux-gnu \
             --native-bin compiler/native/target/release \
-            --coordinator-bin target/release \
             --rust-root "$RUNNER_TEMP/bluefe-compatibility/bluefe-rust" \
             --vendor-dir "$RUNNER_TEMP/native-vendor" \
             --compatibility-origin bluefe
