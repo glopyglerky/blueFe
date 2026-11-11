@@ -17,7 +17,7 @@ on:
       lustr_revision:
         description: Exact Lustr source commit to package
         type: string
-        default: c51df8b3ee102a31059732a0338796f117909248
+        default: f1c4bf2c6a22baa2ea146bb270804be547c15473
 
 permissions:
   contents: read
@@ -38,7 +38,7 @@ jobs:
     env:
       COMPONENT_RUN_ID: ${{ inputs.component_run_id || '42977397326' }}
       COMPONENT_REVISION: ${{ inputs.component_revision || 'e091741964e51bc70fc61b1dc14c382809bf8410' }}
-      LUSTR_REVISION: ${{ inputs.lustr_revision || 'c51df8b3ee102a31059732a0338796f117909248' }}
+      LUSTR_REVISION: ${{ inputs.lustr_revision || 'f1c4bf2c6a22baa2ea146bb270804be547c15473' }}
       RUSTUP_TOOLCHAIN: 1.99.1
       PYTHONDONTWRITEBYTECODE: '1'
     steps:

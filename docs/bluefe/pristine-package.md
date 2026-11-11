@@ -68,7 +68,7 @@ or preservation of every upstream speed ratio.
 
 The pinned Lust baseline also has a confirmed external-input cache invalidation
 defect involving whitespace or comments before the macro `!`. Read the
-[known native cache limitation and scoped workaround](https://github.com/glopyglerky/lustr/blob/c51df8b3ee102a31059732a0338796f117909248/docs/compiler-set/native-package.md#known-native-cache-limitation)
+[known native cache limitation and scoped workaround](https://github.com/glopyglerky/lustr/blob/f1c4bf2c6a22baa2ea146bb270804be547c15473/docs/compiler-set/native-package.md#known-native-cache-limitation)
 before using affected inputs. This package preserves the upstream source and
 cache defaults; the defect remains unfixed.
 
