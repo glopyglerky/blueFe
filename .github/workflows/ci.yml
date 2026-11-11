@@ -182,6 +182,12 @@ jobs:
 
       - name: checkout submodules
         run: src/ci/scripts/checkout-submodules.sh
+        env:
+          # The pinned fixture object exists in the canonical public upstream:
+          # https://github.com/pingdotgg/ts-rust/commit/30a9602e70c07313cbebeb8fdd96c133f218376f
+          GIT_CONFIG_COUNT: "1"
+          GIT_CONFIG_KEY_0: url.https://github.com/pingdotgg/ts-rust.git.insteadOf
+          GIT_CONFIG_VALUE_0: git@github.com:t3dotgg/ts-rust-lust.git
 
       - name: install MinGW
         run: src/ci/scripts/install-mingw.sh
