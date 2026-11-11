@@ -1,0 +1,68 @@
+name: Pristine BlueFe package
+
+on:
+  push:
+    branches: ['build/lustr-native-package*']
+    paths:
+      - '.github/workflows/bluefe-package.yml'
+      - 'tools/bluefe-package/**'
+      - 'upstream/rust.pin'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: bluefe-package-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  linux:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    env:
+      PYTHONDONTWRITEBYTECODE: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 128
+      - name: Install build inputs
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake ninja-build pkg-config libssl-dev libcurl4-openssl-dev zlib1g-dev xz-utils
+          rustup toolchain install 1.99.1 --profile minimal
+      - name: Verify source preservation
+        run: |
+          rustc +1.99.1 --edition=2024 tools/bluefe-rust-upstream-check.rs -o "$RUNNER_TEMP/bluefe-upstream-check"
+          "$RUNNER_TEMP/bluefe-upstream-check"
+          python3 -m unittest discover -s tools/bluefe-package -p 'test_*.py' -v
+      - name: Initialize required upstream submodules
+        run: git submodule update --init --depth=1 library/backtrace src/tools/cargo
+      - name: Build, relocate, qualify and archive
+        run: |
+          python3 tools/bluefe-package/package.py \
+            --source "$GITHUB_WORKSPACE" \
+            --work "$RUNNER_TEMP/bluefe-build" \
+            --output "$RUNNER_TEMP/bluefe-artifacts" \
+            --guard "$RUNNER_TEMP/bluefe-upstream-check"
+      - name: Verify source preservation after build
+        if: always()
+        run: '"$RUNNER_TEMP/bluefe-upstream-check"'
+      - name: Upload package
+        uses: actions/upload-artifact@v4
+        with:
+          name: bluefe-pristine-x86_64-unknown-linux-gnu-${{ github.sha }}
+          path: ${{ runner.temp }}/bluefe-artifacts/*
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 30
+      - name: Upload build and qualification logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bluefe-build-log-${{ github.sha }}
+          path: |
+            ${{ runner.temp }}/bluefe-build/*.log
+            ${{ runner.temp }}/bluefe-build/bootstrap.toml
+          if-no-files-found: warn
+          retention-days: 14

@@ -1,0 +1,3 @@
+[workspace]
+members = ["contract", "macros", "app"]
+resolver = "3"
