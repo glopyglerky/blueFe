@@ -17,7 +17,7 @@ on:
       lustr_revision:
         description: Exact Lustr source commit to package
         type: string
-        default: ec89ca9342f50c77d2e1fd2ced2fc0c87829faab
+        default: c51df8b3ee102a31059732a0338796f117909248
 
 permissions:
   contents: read
@@ -38,7 +38,7 @@ jobs:
     env:
       COMPONENT_RUN_ID: ${{ inputs.component_run_id || '42977397326' }}
       COMPONENT_REVISION: ${{ inputs.component_revision || 'e091741964e51bc70fc61b1dc14c382809bf8410' }}
-      LUSTR_REVISION: ${{ inputs.lustr_revision || 'ec89ca9342f50c77d2e1fd2ced2fc0c87829faab' }}
+      LUSTR_REVISION: ${{ inputs.lustr_revision || 'c51df8b3ee102a31059732a0338796f117909248' }}
       RUSTUP_TOOLCHAIN: 1.99.1
       PYTHONDONTWRITEBYTECODE: '1'
     steps:
@@ -198,6 +198,12 @@ jobs:
           "$RUNNER_TEMP/lust-upstream-check"
           compiler/native/scripts/build-tcc.sh
           cargo build --manifest-path compiler/native/Cargo.toml --release --locked
+          python3 tools/build-native-cargo.py \
+            --repository "$GITHUB_WORKSPACE/lustr" \
+            --cargo "$(rustup which cargo)" --rustc "$(rustup which rustc)" \
+            --tcc-root "$GITHUB_WORKSPACE/lustr/compiler/native/third_party/tcc" \
+            --target-dir "$RUNNER_TEMP/lustr-native-cargo" \
+            --receipt "$RUNNER_TEMP/native-cargo-build.json"
           cargo vendor --manifest-path compiler/native/Cargo.toml --locked --offline \
             "$RUNNER_TEMP/native-vendor" > "$RUNNER_TEMP/native-vendor-config.toml"
       - name: Assemble the combined compiler package
@@ -206,6 +212,8 @@ jobs:
           python3 tools/package-toolchain.py \
             --output dist/bluefe-lustr-native-preview-x86_64-unknown-linux-gnu \
             --native-bin compiler/native/target/release \
+            --native-cargo-bin "$RUNNER_TEMP/lustr-native-cargo/x86_64-unknown-linux-gnu/gate/lustr-native" \
+            --native-cargo-receipt "$RUNNER_TEMP/native-cargo-build.json" \
             --rust-root "$RUNNER_TEMP/bluefe-compatibility/bluefe-rust" \
             --vendor-dir "$RUNNER_TEMP/native-vendor" \
             --compatibility-origin bluefe
@@ -246,6 +254,8 @@ jobs:
           name: bluefe-lustr-package-evidence-${{ github.sha }}
           path: |
             ${{ runner.temp }}/assembly-evidence
+            ${{ runner.temp }}/native-cargo-build.json
+            ${{ runner.temp }}/native-cargo-build.cargo.log
             lustr/dist/package-qualification.json
             lustr/dist/native-qualification
             lustr/dist/bluefe-lustr-native-preview-x86_64-unknown-linux-gnu/lustr-toolchain.json

@@ -13,7 +13,8 @@ claimed by this packaging workflow.
 
 After the Rust component qualifies, a separate job checks out the exact Lustr
 commit recorded in the workflow and builds its unchanged native Lust compiler,
-Lust client and TinyCC runtime. It combines those with this newly built BlueFe
+Lust client, TinyCC runtime and Lustr's in-process native Cargo compiler.
+It combines those with this newly built BlueFe
 component, validates the BlueFe manifest against the actual compiler identity
 and binary hashes, and runs the Lustr package's relocation, runtime, rejection
 and native coverage gates. A combined archive is uploaded only after those
@@ -40,9 +41,34 @@ contracts, so it cannot be selected as Cargo's general-purpose `RUSTC` replaceme
 The combined preview records incomplete native Rust coverage. Its full Rust
 compatibility comes from the packaged unchanged Rust compiler.
 
+The additional `bin/lustr-native` executable supplies a bounded native Cargo
+interface for dependency-free Rust 2024 binaries. It compiles through the original
+Lust modules in the same process, supplies Cargo's crate identity through existing
+native interfaces, and emits actual source and external-input dependency records.
+Select it directly for a supported project:
+
+```sh
+RUSTC="$LUSTR_ROOT/bin/lustr-native" "$LUSTR_ROOT/bin/cargo" build --locked
+```
+
+This entry point has no rustc fallback. Native rlibs, Rust metadata, procedural
+macro artifacts, test harnesses, release optimization and full language coverage
+remain unimplemented and fail explicitly. It reports its own experimental
+`0.1.0` version, so a manifest's higher minimum Rust version can also reject it.
+Its unit cache and Cargo freshness are qualified separately from the original
+Lust daemon; the daemon's warm latency is not claimed for this new path.
+
+The native build receipt binds the actual Rust compiler invocation to the binary
+hash, source revision and bootstrap identity. The package gate verifies that
+receipt and compiles and runs the native fixture while the original build-time
+runtime paths are unavailable. It checks included-file, environment, source and
+feature changes against the packaged Rust compiler and retains both compilers'
+raw timing results. These bounded checks do not establish complete Rust support
+or preservation of every upstream speed ratio.
+
 The pinned Lust baseline also has a confirmed external-input cache invalidation
 defect involving whitespace or comments before the macro `!`. Read the
-[known native cache limitation and scoped workaround](https://github.com/glopyglerky/lustr/blob/ec89ca9342f50c77d2e1fd2ced2fc0c87829faab/docs/compiler-set/native-package.md#known-native-cache-limitation)
+[known native cache limitation and scoped workaround](https://github.com/glopyglerky/lustr/blob/c51df8b3ee102a31059732a0338796f117909248/docs/compiler-set/native-package.md#known-native-cache-limitation)
 before using affected inputs. This package preserves the upstream source and
 cache defaults; the defect remains unfixed.
 
