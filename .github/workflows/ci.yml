@@ -231,6 +231,28 @@ jobs:
       - name: show the current environment
         run: src/ci/scripts/dump-environment.sh
 
+      - name: Prepare exact upstream compiler artifact cache
+        id: prepare_artifact_cache
+        if: >-
+          ${{ github.event_name == 'pull_request' && github.repository != 'rust-lang/rust' &&
+              runner.os == 'Linux' && runner.arch == 'X64' }}
+        env:
+          CI_LLVM_JOB: ${{ matrix.name }}
+        run: |
+          python3 -m unittest discover -s .github/scripts/tests -p test_ci_artifact_cache.py
+          rustc --edition=2021 tools/bluefe-rust-upstream-check.rs -o "$RUNNER_TEMP/bluefe-source-guard"
+          "$RUNNER_TEMP/bluefe-source-guard"
+          python3 .github/scripts/prepare-ci-artifact-cache.py --job "$CI_LLVM_JOB"
+
+      - name: Retain upstream compiler artifact provenance
+        if: ${{ always() && steps.prepare_artifact_cache.outcome == 'success' }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: ci-artifact-provenance-${{ matrix.name }}
+          path: obj/ci-artifact-provenance.json
+          if-no-files-found: error
+          retention-days: 14
+
       # Pre-build citool before the following step uninstalls rustup
       # Build it into the build directory, to avoid modifying sources
       - name: build citool
