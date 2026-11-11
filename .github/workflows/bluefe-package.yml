@@ -37,7 +37,10 @@ jobs:
           "$RUNNER_TEMP/bluefe-upstream-check"
           python3 -m unittest discover -s tools/bluefe-package -p 'test_*.py' -v
       - name: Initialize required upstream submodules
-        run: git submodule update --init --depth=1 library/backtrace src/tools/cargo
+        run: |
+          git submodule update --init --depth=1 \
+            library/backtrace src/tools/cargo \
+            src/doc/book src/doc/reference src/tools/rustc-perf
       - name: Build, relocate, qualify and archive
         run: |
           python3 tools/bluefe-package/package.py \
@@ -64,5 +67,100 @@ jobs:
           path: |
             ${{ runner.temp }}/bluefe-build/*.log
             ${{ runner.temp }}/bluefe-build/bootstrap.toml
+          if-no-files-found: warn
+          retention-days: 14
+
+  combined:
+    name: Combine pristine BlueFe and native Lust
+    needs: linux
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    env:
+      RUSTUP_TOOLCHAIN: 1.99.1
+      PYTHONDONTWRITEBYTECODE: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: glopyglerky/lustr
+          ref: 595cdc4dcbe493dd90636e71e95fd7ef2716414c
+          path: lustr
+      - uses: actions/download-artifact@v4
+        with:
+          name: bluefe-pristine-x86_64-unknown-linux-gnu-${{ github.sha }}
+          path: ${{ runner.temp }}/bluefe-component
+      - name: Verify and extract the qualified BlueFe component
+        working-directory: ${{ runner.temp }}/bluefe-component
+        run: |
+          sha256sum -c SHA256SUMS
+          mkdir "$RUNNER_TEMP/bluefe-compatibility"
+          packages=(bluefe-pristine-*-x86_64-unknown-linux-gnu.tar.gz)
+          test "${#packages[@]}" = 1
+          tar -xzf "${packages[0]}" -C "$RUNNER_TEMP/bluefe-compatibility"
+      - name: Install native build inputs
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential pkg-config
+          rustup toolchain install 1.99.1 --profile minimal
+      - name: Verify unchanged Lust and build both entry points
+        working-directory: lustr
+        run: |
+          rustc --edition=2024 tools/lust-upstream-check.rs -o "$RUNNER_TEMP/lust-upstream-check"
+          "$RUNNER_TEMP/lust-upstream-check"
+          compiler/native/scripts/build-tcc.sh
+          cargo build --manifest-path compiler/native/Cargo.toml --release --locked
+          cargo test --workspace --locked --offline
+          cargo build --workspace --release --locked --offline
+          cargo vendor --manifest-path compiler/native/Cargo.toml --locked --offline \
+            "$RUNNER_TEMP/native-vendor" > "$RUNNER_TEMP/native-vendor-config.toml"
+      - name: Assemble the combined compiler package
+        working-directory: lustr
+        run: |
+          python3 tools/package-toolchain.py \
+            --output dist/bluefe-lustr-native-preview-x86_64-unknown-linux-gnu \
+            --native-bin compiler/native/target/release \
+            --coordinator-bin target/release \
+            --rust-root "$RUNNER_TEMP/bluefe-compatibility/bluefe-rust" \
+            --vendor-dir "$RUNNER_TEMP/native-vendor" \
+            --compatibility-origin bluefe
+      - name: Qualify the combined package after relocation
+        working-directory: lustr
+        run: |
+          python3 tools/qualify-package.py \
+            --package dist/bluefe-lustr-native-preview-x86_64-unknown-linux-gnu \
+            --baseline-native compiler/native/target/release/lust \
+            --output dist/package-qualification.json
+          python3 tools/native-qualification.py \
+            --lust "$GITHUB_WORKSPACE/lustr/dist/bluefe-lustr-native-preview-x86_64-unknown-linux-gnu/bin/lust" \
+            --rustc "$GITHUB_WORKSPACE/lustr/dist/bluefe-lustr-native-preview-x86_64-unknown-linux-gnu/bin/rustc" \
+            --output "$GITHUB_WORKSPACE/lustr/dist/native-qualification"
+          "$RUNNER_TEMP/lust-upstream-check"
+      - name: Archive the combined qualified package
+        working-directory: lustr
+        run: |
+          tar --sort=name --owner=0 --group=0 --numeric-owner \
+            --mtime="@$(git show -s --format=%ct HEAD)" \
+            -C dist -cf - bluefe-lustr-native-preview-x86_64-unknown-linux-gnu \
+            | gzip -n -6 > dist/bluefe-lustr-native-preview-x86_64-unknown-linux-gnu.tar.gz
+          cd dist
+          sha256sum bluefe-lustr-native-preview-x86_64-unknown-linux-gnu.tar.gz > SHA256SUMS
+      - uses: actions/upload-artifact@v4
+        with:
+          name: bluefe-lustr-native-preview-x86_64-${{ github.sha }}
+          path: |
+            lustr/dist/bluefe-lustr-native-preview-x86_64-unknown-linux-gnu.tar.gz
+            lustr/dist/SHA256SUMS
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 30
+      - name: Retain combined qualification evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bluefe-lustr-package-evidence-${{ github.sha }}
+          path: |
+            lustr/dist/package-qualification.json
+            lustr/dist/native-qualification
+            lustr/dist/bluefe-lustr-native-preview-x86_64-unknown-linux-gnu/lustr-toolchain.json
+            lustr/dist/bluefe-lustr-native-preview-x86_64-unknown-linux-gnu/bluefe-package.json
           if-no-files-found: warn
           retention-days: 14

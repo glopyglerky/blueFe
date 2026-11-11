@@ -11,15 +11,33 @@ does not contain Lust or implement Lustr's missing native Rust coverage. The
 manifest records `complete_native_lustr: false`. No compilation speedup is
 claimed by this packaging workflow.
 
+After the Rust component qualifies, a separate job checks out the exact Lustr
+commit recorded in the workflow and builds its unchanged native Lust compiler,
+TinyCC runtime and coordinator. It combines those with this newly built BlueFe
+component, validates the BlueFe manifest against the actual compiler identity
+and binary hashes, and runs the Lustr package's relocation, runtime, rejection
+and native coverage gates. A combined archive is uploaded only after those
+checks pass. The Rust component remains independently downloadable if the later
+combined-package job fails.
+
+The combined artifact is named `bluefe-lustr-native-preview-x86_64-<commit>`.
+Its archive extracts to `bluefe-lustr-native-preview-x86_64-unknown-linux-gnu`.
+Use `bin/lustr --engine lust` for the existing native subset, and
+`bin/lustr --bluefe-root <absolute-package-root> --engine rustc` for the packaged
+BlueFe compatibility path. The combined preview still records incomplete native
+Rust coverage; packaging does not convert a compatibility route into a new
+native implementation.
+
 ## Build and source boundaries
 
 The workflow runs on explicit `build/lustr-native-package*` branch pushes or a
 manual dispatch. Its Linux job has a 180-minute limit. Compiler downloads are
 disabled; the upstream stage0 bootstrap inputs and checksums remain unchanged.
 LLVM comes from the upstream CI artifact selected by unchanged bootstrap code.
-Only the necessary Cargo and backtrace submodules are initialized. LLVM source
-is not initialized, so a missing CI artifact cannot silently become a full LLVM
-source build.
+The necessary Cargo and backtrace submodules are initialized, together with the
+book, reference and rustc-perf submodules required by upstream distribution's
+copyright/dependency collection. LLVM source is not initialized, so a missing
+CI artifact cannot silently become a full LLVM source build.
 
 The build uses supported options in `bootstrap.example.toml`, with all output
 and generated configuration outside source. It uses two build jobs, optimized

@@ -261,6 +261,8 @@ def main():
     manifest = {"schema": "bluefe.pristine-rust-package.v1", "target": TARGET,
                 "role": "rustc-compatibility-component", "native_lust_included": False,
                 "complete_native_lustr": False, "source": source_record,
+                "tool_sha256": {name: digest(relocated / "bin" / name)
+                                for name in ("rustc", "rustdoc", "cargo")},
                 "qualification": qualification,
                 "qualified_host": {"system": platform.system(), "machine": platform.machine(),
                                    "libc": list(platform.libc_ver())}}
