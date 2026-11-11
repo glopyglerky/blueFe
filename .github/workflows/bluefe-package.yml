@@ -1,12 +1,6 @@
-name: Pristine BlueFe package
+name: Historical stock Rust reference package
 
 on:
-  push:
-    branches: ['build/lustr-native-package*']
-    paths:
-      - '.github/workflows/bluefe-package.yml'
-      - 'tools/bluefe-package/**'
-      - 'upstream/rust.pin'
   workflow_dispatch:
 
 permissions:

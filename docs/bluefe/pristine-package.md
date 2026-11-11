@@ -1,6 +1,11 @@
-# Package the unchanged Rust implementation
+# Historical stock Rust reference package
 
-The `Pristine BlueFe package` workflow builds the current fork's unchanged Rust
+This manual experiment preserves earlier reference artifacts. The current
+requirement is stock BlueFe source compiled only by Lustr; the
+[Lustr-only build gate](lustr-only-build.md) enforces that compiler selection.
+Bundling the stock compiler described below does not meet that requirement.
+
+The `Historical stock Rust reference package` workflow builds the fork's unchanged Rust
 implementation and produces a relocatable Linux GNU x86_64 compiler component.
 It is separate from the historical stage2 previews. A successful artifact
 contains a newly built stage1 rustc, matching native standard library, rustdoc

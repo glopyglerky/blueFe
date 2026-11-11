@@ -1,9 +1,6 @@
-name: Assemble qualified BlueFe and Lustr
+name: Historical mixed compatibility package
 
 on:
-  push:
-    branches: ['package/qualified-native*']
-    paths: ['.github/workflows/bluefe-lustr-assemble.yml']
   workflow_dispatch:
     inputs:
       component_run_id:

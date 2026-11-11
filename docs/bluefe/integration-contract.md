@@ -1,4 +1,9 @@
-# BlueFe integration contract
+# Historical compatibility integration
+
+BlueFe's current compiler requirement is the
+[Lustr-only build contract](lustr-only-build.md). Stock Rust source is the
+input, and Lustr is the only selected compiler. The coordinator and stock-rustc
+instructions below describe retained history.
 
 This records the transitional compatibility integration. The
 [native Lustr requirement and current gaps](native-lustr-status.md) supersede

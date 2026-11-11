@@ -1,9 +1,10 @@
 # blueFe
 
-blueFe is a fork of Rust integrating [Lustr](https://github.com/glopyglerky/lustr).
-The required compiler is a complete rustc replacement: Lustr must contain
-unchanged upstream Lust, use it for everything it supports, and supply the
-remaining Rust support in Lustr-owned code. That replacement is incomplete.
+BlueFe holds the stock Rust source and must use
+[Lustr](https://github.com/glopyglerky/lustr) as its only Rust compiler.
+Lustr uses unchanged upstream Lust for its supported Rust subset and supplies
+the remaining compiler behavior in Lustr-owned native code. Cargo selects
+Lustr directly. The complete replacement remains unfinished.
 
 The protected Rust compiler, standard library and bootstrap now match upstream
 `5b7b37aefcb5b2fba3c2392bc9065b9e4602d494`. Earlier compiler compatibility edits
@@ -14,11 +15,25 @@ necessity and faster equivalent-workload evidence for any future divergence.
 This source checkpoint does not replace existing release assets. See the
 [native integration status](docs/bluefe/native-lustr-status.md).
 
-## Use a packaged toolchain
+## Build with Lustr
 
-Use [preview-2026.11.09-2](https://github.com/glopyglerky/blueFe/releases/tag/preview-2026.11.09-2)
-for Linux x86_64 GNU instead of rebuilding the compiler for each project.
-Download all six assets into a versioned directory outside source checkouts.
+The [Lustr-only build contract](docs/bluefe/lustr-only-build.md) selects the
+actual native compiler using upstream bootstrap's `build.rustc` option, with
+Cargo supplied directly. The `BlueFe with Lustr only` workflow attempts the
+unchanged compiler sources at stage zero and retains the native failure when
+Lustr cannot compile them. It cannot qualify a build using a downloaded or
+produced stock rustc. There is no fallback compiler or additional coordinator.
+
+The older stock-Rust and mixed-package workflows are manual historical
+experiments. They are not the BlueFe/Lustr product build and do not establish
+native Lustr coverage.
+
+## Historical packaged toolchain
+
+The retained [preview-2026.11.09-2](https://github.com/glopyglerky/blueFe/releases/tag/preview-2026.11.09-2)
+is a stock-rustc compatibility experiment for Linux x86_64 GNU. The following
+commands reproduce that historical package, which does not meet the current
+requirement. Its six assets belong in a versioned directory outside source checkouts.
 The bundle requires GLIBC 2.39, GLIBCXX_3.4.32 and the libraries recorded in
 `platform.json`; native linking also needs a C compiler, linker and development
 files. Other hosts are unqualified.
@@ -48,7 +63,7 @@ source bindings, checksums, checks and limits.
 See the [integration contract](docs/bluefe/integration-contract.md) and
 [scoped proofs and qualification evidence](docs/bluefe/proofs/README.md).
 
-## Measured performance
+## Historical rustc performance measurements
 
 The [matched CGU16/ThinLTO stage2 pilot](docs/bluefe/measurements/2026-11-09-cgu16-thinlto/README.md)
 completed 108 timed metadata-only root checks. The optimized package used 17.9%
@@ -85,7 +100,10 @@ records a built candidate, passing runtime checks, exact hashes and narrow
 mathematical arguments. Its missing-profile diagnostic gate remains unresolved;
 no PGO timing or speedup is reported, and it does not replace the packaged preview.
 
-## Build BlueFe from source
+## Historical stock-rustc bootstrap recipe
+
+This retained recipe builds and uses stock rustc. Current product work uses the
+[Lustr-only gate](docs/bluefe/lustr-only-build.md) above.
 
 Lustr is pinned as the root `lustr/` submodule. Its source and integration remain
 separate from the protected upstream compiler and bootstrap. Initialize required
