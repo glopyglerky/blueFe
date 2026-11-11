@@ -60,10 +60,18 @@ compiler-exclusivity evidence.
 This is a required build gate, not a claim that Lustr can already compile the
 Rust compiler. The first local diagnostic attempt selected the real native
 compiler and reached Cargo's target-information request. Lustr rejected the
-upstream bootstrap option `-Zallow-features=`. The unchanged bootstrap command
-and native error were retained. The strict local attempt was separately blocked
-by the environment's unavailable `ptrace`; it did not execute a compiler and is
-not native failure evidence. GitHub Actions runs the strict gate.
+upstream bootstrap option `-Zallow-features=`. That failure is retained.
+The new native query implementation answers the exact bootstrap request while
+keeping unimplemented lint/feature options as errors for source compilation.
+The next actual diagnostic passes that query and stops at Cargo's minimum Rust
+version checks: dependencies require versions above Lustr's advertised `0.1.0`.
+The compiler identity is not changed to claim unverified Rust compatibility.
+Neither attempt reaches BlueFe Rust source compilation.
+
+The strict local attempt was separately blocked by the environment's unavailable
+`ptrace`; it did not execute a compiler and is not native failure evidence.
+Local diagnostic runs do not establish compiler-process exclusivity. GitHub
+Actions runs the strict gate with process tracing.
 
 Native library compilation and cross-crate import are being implemented in
 Lustr outside its preserved upstream source. Those additions must pass real

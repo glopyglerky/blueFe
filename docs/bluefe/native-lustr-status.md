@@ -9,14 +9,14 @@ directly. A Cargo coordinator or a tuned rustc build does not complete it.
 ## Source baseline
 
 The root `lustr` gitlink selects
-[`9fd796650b935db4a25de58263a7035e946d14d7`](https://github.com/glopyglerky/lustr/commit/9fd796650b935db4a25de58263a7035e946d14d7).
+[`0bda81337a528a8ab910208357b65693b2f06fbb`](https://github.com/glopyglerky/lustr/commit/0bda81337a528a8ab910208357b65693b2f06fbb).
 Its `compiler/native` tree is exactly upstream Lust revision
 `240e08d91d4aed0299639f6f11fd522912b248f9`, tree
 `0ab1b09815802894e6078de0af59273cbdf46cb0`. Earlier fork overrides and an
 unpublished expansion candidate are excluded. The source guard rejects drift.
 Lustr-owned work belongs outside the upstream baseline. Any proposed Lust
 exception requires demonstrated necessity and faster equivalent-workload results.
-See the [preservation policy](https://github.com/glopyglerky/lustr/blob/9fd796650b935db4a25de58263a7035e946d14d7/docs/compiler-set/upstream-lust.md).
+See the [preservation policy](https://github.com/glopyglerky/lustr/blob/0bda81337a528a8ab910208357b65693b2f06fbb/docs/compiler-set/upstream-lust.md).
 
 ## Rust source baseline
 
@@ -33,21 +33,29 @@ releases keep their earlier source and binary identities.
 The native `lustr-native` executable imports the unchanged Lust compiler
 modules in process. Its dependency-free binary path retains the original Lust
 driver. Lustr-owned native code now emits real ELF library objects with typed
-metadata and imports safe scalar function signatures into binary consumers.
+metadata and imports safe/unsafe scalar function signatures into binary consumers.
 Consumers link the compiled objects without the producer's source. This is
 Lustr's native format; full Rust metadata and ABI interoperability are not
 implemented.
 
-The independent-library required fixture still fails on unsafe Rust. Public
-types/traits/generics, procedural macros, transitive native libraries, full
-standard-library support and many Cargo/compiler requests remain unfinished.
-The separate safe-library diagnostic does not replace that required gate.
+Owned native syntax and semantic checks now implement scalar unsafe function
+contracts, unsafe blocks and function pointers. The independent-library fixture
+keeps its original unsafe requirements and adds rejection checks for aliases,
+scope, pointer conversions, lint precedence and closure returns. Raw-pointer
+operations, unsafe FFI, public types/traits/generics, procedural macros,
+transitive native libraries, full standard-library support and many
+Cargo/compiler requests remain unfinished. The separate safe-library diagnostic
+does not replace the required gate.
 
 The [Lustr-only build](lustr-only-build.md) selects the actual native executable
 through unchanged upstream bootstrap's `build.rustc` setting and records its
 execution. The first local diagnostic reached Cargo's compiler probe and
-failed on `-Zallow-features=`. BlueFe has not been compiled successfully by
-Lustr. The workflow retains failures and source-preservation results.
+failed on `-Zallow-features=`. The corrected native query passes that request;
+the next actual diagnostic stops at Cargo's minimum Rust version checks because
+dependencies require versions above Lustr's advertised `0.1.0`. This still
+happens before BlueFe source compilation. BlueFe has not been compiled
+successfully by Lustr. The workflow retains failures and source-preservation
+results.
 
 An earlier pristine Lust build passed 391 upstream unit tests with Cargo 1.99.1,
 plus isolated relocated check/build/run and invalid-type rejection probes.

@@ -19,7 +19,7 @@ on:
       lustr_revision:
         description: Exact native Lustr implementation commit
         type: string
-        default: 9fd796650b935db4a25de58263a7035e946d14d7
+        default: 0bda81337a528a8ab910208357b65693b2f06fbb
 
 permissions:
   contents: read
@@ -33,7 +33,7 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 180
     env:
-      LUSTR_REVISION: ${{ inputs.lustr_revision || '9fd796650b935db4a25de58263a7035e946d14d7' }}
+      LUSTR_REVISION: ${{ inputs.lustr_revision || '0bda81337a528a8ab910208357b65693b2f06fbb' }}
       RUSTUP_TOOLCHAIN: 1.99.1
       PYTHONDONTWRITEBYTECODE: '1'
     steps:
