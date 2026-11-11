@@ -8,13 +8,13 @@ compiler. A Cargo coordinator or a tuned rustc build does not complete it.
 ## Source baseline
 
 The root `lustr` gitlink selects the recovery revision
-[`b8ee19887976660056d30761e92eff3e238ee9dd`](https://github.com/glopyglerky/lustr/commit/b8ee19887976660056d30761e92eff3e238ee9dd).
+[`40a2488d90018ed8fb89cb5b9b5a1bd43315295e`](https://github.com/glopyglerky/lustr/commit/40a2488d90018ed8fb89cb5b9b5a1bd43315295e).
 The immutable upstream Lust baseline remains recorded separately from the
 working fork. The recovery restores the native macOS startup, FFI, Cargo
 build-script, cache handling and test work that the prior upstream reset removed.
 Its source guard records both the upstream baseline and reviewed fork tree.
 See Lustr's
-[preservation policy](https://github.com/glopyglerky/lustr/blob/b8ee19887976660056d30761e92eff3e238ee9dd/docs/compiler-set/upstream-lust.md).
+[preservation policy](https://github.com/glopyglerky/lustr/blob/40a2488d90018ed8fb89cb5b9b5a1bd43315295e/docs/compiler-set/upstream-lust.md).
 
 ## Rust source baseline
 
