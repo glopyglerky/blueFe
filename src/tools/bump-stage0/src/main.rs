@@ -116,20 +116,15 @@ impl Tool {
         Ok(())
     }
 
-    // Currently Rust always bootstraps from the previous stable release, and in our train model
-    // this means that the master branch bootstraps from beta, beta bootstraps from current stable,
-    // and stable bootstraps from the previous stable release.
-    //
-    // On the master branch the compiler version is configured to `beta` whereas if you're looking
-    // at the beta or stable channel you'll likely see `1.x.0` as the version, with the previous
-    // release's version number.
+    // blueFe's nightly source can require a newer compiler than the current beta provides.
+    // Pin a compatible nightly for that channel; release channels keep the previous stable.
     fn detect_compiler(&mut self) -> Result<VersionMetadata, Error> {
         let channel = match self.channel {
             Channel::Stable | Channel::Beta => {
                 // The 1.XX manifest points to the latest point release of that minor release.
                 format!("{}.{}", self.version[0], self.version[1] - 1)
             }
-            Channel::Nightly => "beta".to_string(),
+            Channel::Nightly => "nightly".to_string(),
         };
 
         let (manifest, manifest_hash) =
@@ -144,7 +139,7 @@ impl Tool {
                 .into(),
             date: manifest.date,
             version: if self.channel == Channel::Nightly {
-                "beta".to_string()
+                "nightly".to_string()
             } else {
                 // The version field is like "1.42.0 (abcdef1234 1970-01-01)"
                 manifest.pkg["rust"]

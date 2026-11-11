@@ -1,67 +1,63 @@
-# Upstream source and performance admission
+# Upstream and fork source preservation
 
 All project work is published in `glopyglerky/blueFe` and
 `glopyglerky/lustr`. These changes are not intended for upstream Rust or Lust
 submissions. Upstream repositories are read-only comparison sources.
 
-The Rust compiler, library, bootstrap, stage0 data and stage0 generator are
-pinned in [`upstream/rust.pin`](../../upstream/rust.pin). The source guard
-[`bluefe-rust-upstream-check.rs`](../../tools/bluefe-rust-upstream-check.rs)
-checks their Git object identities, working-tree differences and untracked
-additions. `--index` validates a staged restoration before committing it.
-Initialized submodule contents need their own checks; a gitlink identifies the
-required source commit but does not prove the checked-out bytes.
+## Baseline and working fork
 
-The protected sources match upstream Rust
-`5b7b37aefcb5b2fba3c2392bc9065b9e4602d494`. Six earlier compiler-file
-compatibility edits and the bootstrap coordinator hooks have been removed.
-The upstream stage0 inputs are restored too. This is source preservation,
-not a fresh bootstrap or platform qualification. Historical releases retain
-their original source and artifact records.
+[`upstream/rust.pin`](../../upstream/rust.pin) retains the immutable upstream
+Rust revision `5b7b37aefcb5b2fba3c2392bc9065b9e4602d494` and its original
+compiler, library, bootstrap, stage0 and stage0-generator identities.
 
-Lustr keeps its complete embedded Lust tree identical to its separate upstream
-pin. Product entry points, packaging and experiments belong outside these
-protected implementations. An include of upstream source must identify that
-source explicitly; generated overlays and hidden build-time patches are not
-exceptions to the policy.
+[`upstream/bluefe-fork.pin`](../../upstream/bluefe-fork.pin) records each
+reviewed fork path with two blob identities: the original upstream blob and the
+working fork blob. The source guard verifies the upstream revision and scope
+identities, then compares the complete current scopes with that baseline plus
+the recorded fork changes. It rejects unrecorded changes, missing files,
+changed modes, dirty tracked files and untracked additions. It also rejects
+resetting a recorded fork file to its upstream version.
 
-## Required evidence for a source divergence
+Fetch the pinned upstream revision before running the guard. `--index` checks
+the staged tree. Initialized submodule contents need their own checks; a gitlink
+records a source revision but does not prove checked-out bytes.
 
-A proposed divergence needs both:
+Fork development may change inherited source when required for working compiler
+or integration behavior. Record the exact changed blobs and run the affected
+correctness checks. Update the upstream pin only as an explicit integration,
+with review of both upstream changes and every retained fork change. Never reset
+the working fork to upstream merely to satisfy the guard.
 
-1. A minimal reproducible necessity case against the exact upstream baseline.
-   Preserve the original failure, requested semantics and artifact contract.
-2. Faster equivalent-workload results against that baseline, with exact source,
-   compiler, flags, targets, dependency and cache identities. Retain raw paired
-   samples, regressions, validation failures, uncertainty assumptions and
-   independent replay. Correctness alone does not demonstrate speed.
+## Recovered functionality
 
-If the baseline cannot compile a case, that establishes a coverage gap. Its
-failure is not a finite timing sample proving a speedup. A new implementation
-also needs comparisons with a compiler that successfully performs the requested
-work, plus non-regression measurements on upstream-supported work.
+The recovery restores fourteen source files from
+`26f837974ddfaef83d89c9ffaa21bd9b70297a81` that were replaced by
+`f0f00135a69fdf718ad73aaaecbddeacf36f2b74`:
 
-No new upstream-source exception is admitted at this checkpoint. A necessity
-argument without speed evidence, or a speed result without equivalent behavior,
-does not pass. Public-repository workloads are permitted; private host state,
-credentials and coordination records stay outside public artifacts.
+- Six compiler compatibility files required by the selected stage0.
+- Bootstrap coordinator routing, its Python and Rust tests, and the bounded
+  stage0 preflight.
+- Stage0 checksums, nightly selection and the matching target capability list.
+- Unwinding configuration for an explicitly selected in-tree Cranelift build.
 
-## What can be proved
+Other upstream changes introduced by the removal merge remain. This includes
+the newer library, compiler, debugger and lint-test changes. The recovery is a
+source repair, not a new compiler release or a fresh full-bootstrap qualification.
+Existing preview assets and their historical evidence retain their identities.
 
-Under the assumed integrity of Git objects and the pinned upstream identity,
-matching protected tree/blob IDs with empty tracked differences and no untracked
-additions establishes tracked-source preservation. It does not prove compiler
-correctness, dependency contents, runtime identity or performance.
+## Correctness and performance
 
-Let `T` be the baseline time, `S` the work eliminated by an integration and `H`
-its added cost, all for the same successful request and execution conditions.
-Then `T_new = T - S + H`, so non-regression is equivalent to `S >= H`.
-Keeping the compiler source unchanged does not establish this inequality.
-Trying Lust and then running the same full Rust compilation adds positive work
-unless another saving offsets it. End-to-end measurements must include that
-work. A finite benchmark suite cannot prove a wall-clock bound for every future
-Rust program, machine or operating-system schedule.
+A correctness repair needs evidence that the affected behavior works. It does
+not need to demonstrate a speedup before existing functionality may be retained.
+Performance claims need matched successful workloads, source and toolchain
+identities, target and flag details, raw samples and recorded failures. A failed
+baseline is a coverage gap, not a timing result.
 
-Lustr's [statistical methodology](https://github.com/glopyglerky/lustr/blob/next/docs/compiler-set/benchmark-method.md)
-records the conditional estimators and assumptions used for measured claims.
-Published claims must remain within their actual qualification scope.
+The guard establishes recorded source identities under the assumed integrity
+of Git objects. It does not prove compiler correctness, dependency contents,
+runtime identity, universal hardware support or speed. Native compiler,
+Cranelift, relocation and release qualifications remain separate.
+
+Lustr's
+[statistical methodology](https://github.com/glopyglerky/lustr/blob/next/docs/compiler-set/benchmark-method.md)
+records the measurement assumptions for performance claims.

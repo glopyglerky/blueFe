@@ -1,14 +1,15 @@
-name: Unchanged Rust source
+name: Rust upstream and fork preservation
 on:
   push:
-    branches: [main]
+    branches: [main, 'repair/**']
     paths:
       - 'compiler/**'
       - 'library/**'
       - 'src/bootstrap/**'
       - 'src/stage0'
       - 'src/tools/bump-stage0/**'
-      - 'upstream/rust.pin'
+      - 'lustr'
+      - 'upstream/*.pin'
       - 'tools/bluefe-rust-upstream-check.rs'
       - '.github/workflows/bluefe-upstream.yml'
   pull_request:
@@ -18,14 +19,28 @@ permissions:
 jobs:
   upstream:
     runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      RUSTUP_TOOLCHAIN: nightly-2026-11-03
     steps:
       - uses: actions/checkout@v4
-      - run: rustup toolchain install 1.99.1 --profile minimal
-      - name: Verify protected upstream source
+      - name: Fetch the immutable upstream baseline and Lustr
         run: |
-          rustc +1.99.1 --edition=2024 tools/bluefe-rust-upstream-check.rs -o "$RUNNER_TEMP/bluefe-upstream-check"
+          revision=$(awk -F'"' '/^revision = / {print $2}' upstream/rust.pin)
+          git fetch --no-tags --depth=1 origin "$revision"
+          git submodule update --init --depth=1 -- lustr
+      - run: rustup toolchain install nightly-2026-11-03 --profile minimal
+      - name: Verify upstream provenance and recorded fork source
+        run: |
+          rustc --edition=2024 tools/bluefe-rust-upstream-check.rs -o "$RUNNER_TEMP/bluefe-upstream-check"
           "$RUNNER_TEMP/bluefe-upstream-check"
-      - name: Verify drift rejection
+      - name: Verify drift and fork-reversion rejection
         run: |
-          rustc +1.99.1 --edition=2024 --test tools/bluefe-rust-upstream-check.rs -o "$RUNNER_TEMP/bluefe-upstream-tests"
+          rustc --edition=2024 --test tools/bluefe-rust-upstream-check.rs -o "$RUNNER_TEMP/bluefe-upstream-tests"
           "$RUNNER_TEMP/bluefe-upstream-tests"
+      - name: Verify real bootstrap coordinator routing
+        run: |
+          export BLUEFE_TEST_BUILD_ROOT="$RUNNER_TEMP"
+          export BOOTSTRAP_TEST_CARGO_BIN="$(rustup which cargo)"
+          export BOOTSTRAP_TEST_RUSTC_BIN="$(rustup which rustc)"
+          python3 -m unittest -v src/bootstrap/bootstrap_test.py

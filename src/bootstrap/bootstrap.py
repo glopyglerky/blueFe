@@ -1049,8 +1049,55 @@ class RustBuild(object):
         """
         return os.path.join(self.bootstrap_out(), "debug", "bootstrap")
 
+    def lustr_binary(self):
+        suffix = ".exe" if platform_is_win32() else ""
+        return os.path.join(self.build_dir, "bluefe-lustr", "debug", "lustr" + suffix)
+
+    def build_lustr(self, env):
+        source = os.path.join(self.rust_root, "lustr")
+        manifest = os.path.join(source, "crates", "lustr", "Cargo.toml")
+        if not os.path.isfile(manifest):
+            if (
+                self.get_toml("submodules", "build") == "false"
+                or os.path.exists(os.path.join(source, ".git"))
+                or not os.path.exists(os.path.join(self.rust_root, ".git"))
+            ):
+                raise RuntimeError("initialize the pinned root lustr submodule first")
+            run(
+                ["git", "submodule", "update", "--init", "--depth", "1", "--", "lustr"],
+                cwd=self.rust_root,
+                verbose=self.verbose,
+            )
+        env = env.copy()
+        env["CARGO_TARGET_DIR"] = os.path.join(self.build_dir, "bluefe-lustr")
+        run(
+            [self.cargo(), "build", "--manifest-path", manifest, "--bin", "lustr", "--locked", "--offline"],
+            env=env,
+            cwd=self.rust_root,
+            verbose=self.verbose,
+        )
+
+    def check_bluefe_stage0(self):
+        try:
+            output = subprocess.check_output(
+                [self.rustc(), "-vV"], text=True, stderr=subprocess.STDOUT, timeout=15
+            )
+            release = re.search(r"^release: (\d+)\.(\d+)\.", output, re.MULTILINE)
+            with open(os.path.join(self.rust_root, "src", "version"), encoding="utf-8") as source:
+                version = source.read().strip().split(".")
+            minimum = (int(version[0]), int(version[1]) - 1)
+            if release is None or tuple(map(int, release.groups())) < minimum:
+                raise ValueError("compiler is older than the preceding Rust release")
+        except (OSError, subprocess.SubprocessError, ValueError) as error:
+            raise RuntimeError(
+                "BlueFe stage0 preflight failed: {}. Select the pinned nightly or a "
+                "compatible produced compiler with build.rustc and build.cargo; "
+                "no alternate compiler was selected.".format(error)
+            ) from error
+
     def build_bootstrap(self):
         """Build bootstrap"""
+        self.check_bluefe_stage0()
         env = os.environ.copy()
         if "GITHUB_ACTIONS" in env:
             print("::group::Building bootstrap")
@@ -1058,6 +1105,7 @@ class RustBuild(object):
             eprint("Building bootstrap")
 
         args = self.build_bootstrap_cmd(env)
+        self.build_lustr(env)
         # Run this from the source directory so cargo finds .cargo/config
         run(args, env=env, verbose=self.verbose, cwd=self.rust_root)
 
@@ -1208,7 +1256,8 @@ class RustBuild(object):
         except KeyError:
             pass
 
-        return args
+        env["LUST_CARGO"] = self.cargo()
+        return [self.lustr_binary(), "--engine", "auto", "--"] + args[1:]
 
     def build_triple(self):
         """Build triple as in LLVM

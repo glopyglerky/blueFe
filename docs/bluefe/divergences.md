@@ -1,20 +1,24 @@
 # BlueFe decisions and divergences
 
-blueFe owns its product entry points, primary README, Lustr integration and
-packaging. The protected compiler, library, bootstrap, stage0 and stage0-generator
-sources match upstream Rust `5b7b37aefcb5b2fba3c2392bc9065b9e4602d494`.
-The [source and performance admission policy](upstream-preservation.md) records
-the exact scopes and requires necessity plus faster equivalent-workload results
-before admitting a divergence. No new exception is admitted.
+BlueFe owns its entry points, primary README and compiler integration. Lustr is
+pinned at the repository root so the coordinating project is visible without
+navigating an inherited tools tree. Bootstrap builds its primary Rust crate,
+which has no native or registry dependencies.
 
-Earlier compiler compatibility edits, the bootstrap coordinator path and custom
-stage0 selection have been removed. Lustr-owned entry points stay outside those
-upstream implementations. Source restoration does not retroactively rebuild or
-qualify a retained release, and a fresh source bootstrap remains unqualified.
+The Rust compiler, library and bootstrap directories remain in their existing
+layout. They implement the working compiler and preserve upstream build and
+qualification contracts. Moving or deleting them before a replacement exists
+would break full Rust support. Third-party tools and submodules keep identified
+roles and licenses; their presence does not establish memory safety.
 
-The inherited directories preserve upstream build and qualification contracts.
-Third-party tools and submodules retain their roles and licenses. Their presence
-and unchanged source do not establish whole-toolchain memory safety.
+Current fork changes select Lustr for ordinary bootstrap Cargo operations,
+preserve specialized Clippy/Miri launchers, update stage0 through its native
+generator, and enable unwinding when explicitly building the matching in-tree
+Cranelift backend. Runtime qualification remains separate from source setup.
+
+The [source preservation policy](upstream-preservation.md) keeps the immutable
+upstream baseline and records reviewed fork changes separately. A preservation
+check must retain both upstream provenance and working fork functionality.
 
 Application builds use an explicit produced toolchain root. Native and wasm
 sysroots are identified separately from the stage0 compiler used to build them.

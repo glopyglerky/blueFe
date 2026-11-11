@@ -1,31 +1,34 @@
 # Native Lustr integration
 
-Lustr must be a complete rustc replacement containing unchanged upstream Lust.
+Lustr must be a complete rustc replacement building on the upstream Lust implementation.
 Lust must compile everything it supports; Lustr-owned native code must supply
 the missing language, standard-library and crate support. blueFe packages that
 compiler. A Cargo coordinator or a tuned rustc build does not complete it.
 
 ## Source baseline
 
-The root `lustr` gitlink selects
-[`82d77539680fec9cf822ca8231d1abb985069c48`](https://github.com/glopyglerky/lustr/commit/82d77539680fec9cf822ca8231d1abb985069c48).
-Its `compiler/native` tree is exactly upstream Lust revision
-`240e08d91d4aed0299639f6f11fd522912b248f9`, tree
-`0ab1b09815802894e6078de0af59273cbdf46cb0`. Earlier fork overrides and an
-unpublished expansion candidate are excluded. The source guard rejects drift.
-Lustr-owned work belongs outside the upstream baseline. Any proposed Lust
-exception requires demonstrated necessity and faster equivalent-workload results.
-See the [preservation policy](https://github.com/glopyglerky/lustr/blob/82d77539680fec9cf822ca8231d1abb985069c48/docs/compiler-set/upstream-lust.md).
+The root `lustr` gitlink selects the recovery revision
+[`b8ee19887976660056d30761e92eff3e238ee9dd`](https://github.com/glopyglerky/lustr/commit/b8ee19887976660056d30761e92eff3e238ee9dd).
+The immutable upstream Lust baseline remains recorded separately from the
+working fork. The recovery restores the native macOS startup, FFI, Cargo
+build-script, cache handling and test work that the prior upstream reset removed.
+Its source guard records both the upstream baseline and reviewed fork tree.
+See Lustr's
+[preservation policy](https://github.com/glopyglerky/lustr/blob/b8ee19887976660056d30761e92eff3e238ee9dd/docs/compiler-set/upstream-lust.md).
 
 ## Rust source baseline
 
-The protected Rust implementation now matches upstream
-`5b7b37aefcb5b2fba3c2392bc9065b9e4602d494`. The compiler tree is
-`9bb98adca40010656ac057f2c4103cf72f5cdc6f`; the library tree is
-`f48d6700750a1dc11b2f8f1df91a26dee3ef13fb`. Bootstrap and stage0 are also
-restored to upstream. The [preservation gate](upstream-preservation.md) binds
-all five protected scopes and rejects unqualified source divergence. Existing
-releases keep their earlier source and binary identities.
+The original Rust baseline remains
+`5b7b37aefcb5b2fba3c2392bc9065b9e4602d494`.
+[`upstream/rust.pin`](../../upstream/rust.pin) retains its object identities.
+[`upstream/bluefe-fork.pin`](../../upstream/bluefe-fork.pin) records fourteen
+restored files for compiler compatibility, bootstrap coordination, stage0 and
+optional Cranelift unwinding. Other upstream changes from the intervening merge
+remain. The [source guard](upstream-preservation.md) protects the combined
+upstream and fork state from unrecorded changes or another reset.
+
+This repairs source integration. It does not qualify a new full compiler build
+or change existing release assets.
 
 ## Actual implementation
 
@@ -35,12 +38,13 @@ automatic integrated routing, full Rust coverage and Rust rlib/metadata emission
 are not implemented. Linking a Rust compiler library alone does not implement
 those missing interfaces or prove that native Lust handles supported code.
 
-A fresh pristine Lust build passed 391 upstream unit tests with Cargo 1.99.1,
-plus isolated relocated check/build/run and invalid-type rejection probes.
-The build-script reader failed with Cargo 1.101 nightly's newer artifact layout;
-the first failure is retained. This is a compatibility constraint, not a reason
-to patch Lust without the required admission evidence. These checks establish
-the exercised native subset, not a full compiler or a speedup.
+The earlier pristine-source checkpoint passed 391 upstream unit tests with Cargo
+1.99.1 and isolated relocated check/build/run and invalid-type rejection probes.
+That checkpoint failed to read Cargo 1.101 nightly's newer build-script artifact
+layout. Those are historical results, not qualification of the recovered native
+fork or a full compiler. The recovery retains the original failure evidence and
+the restored compatibility work; source checks and focused routing tests do not
+establish complete Rust coverage or a speedup.
 
 ## Release distinction
 
