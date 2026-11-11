@@ -1,0 +1,261 @@
+name: Historical mixed compatibility package
+
+on:
+  workflow_dispatch:
+    inputs:
+      component_run_id:
+        description: Successful BlueFe component workflow run
+        type: string
+        default: '42977397326'
+      component_revision:
+        description: Exact BlueFe source commit built in that run
+        type: string
+        default: e091741964e51bc70fc61b1dc14c382809bf8410
+      lustr_revision:
+        description: Exact Lustr source commit to package
+        type: string
+        default: f1c4bf2c6a22baa2ea146bb270804be547c15473
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: bluefe-lustr-assemble-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  assemble:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    env:
+      COMPONENT_RUN_ID: ${{ inputs.component_run_id || '42977397326' }}
+      COMPONENT_REVISION: ${{ inputs.component_revision || 'e091741964e51bc70fc61b1dc14c382809bf8410' }}
+      LUSTR_REVISION: ${{ inputs.lustr_revision || 'f1c4bf2c6a22baa2ea146bb270804be547c15473' }}
+      RUSTUP_TOOLCHAIN: 1.99.1
+      PYTHONDONTWRITEBYTECODE: '1'
+    steps:
+      - name: Verify the source run and successful component job
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python3 - <<'PY'
+          import os
+          import re
+          for name in ('COMPONENT_REVISION', 'LUSTR_REVISION'):
+              if not re.fullmatch('[0-9a-f]{40}', os.environ[name]):
+                  raise SystemExit('expected an immutable Git commit: ' + name)
+          if not re.fullmatch('[1-9][0-9]*', os.environ['COMPONENT_RUN_ID']):
+              raise SystemExit('invalid component workflow run ID')
+          if os.environ['GITHUB_REPOSITORY'] != 'glopyglerky/blueFe':
+              raise SystemExit('component assembly must run in the BlueFe fork')
+          PY
+          mkdir "$RUNNER_TEMP/assembly-evidence"
+          gh api "repos/$GITHUB_REPOSITORY/actions/runs/$COMPONENT_RUN_ID" \
+            > "$RUNNER_TEMP/assembly-evidence/component-run.json"
+          gh api "repos/$GITHUB_REPOSITORY/actions/runs/$COMPONENT_RUN_ID/jobs?per_page=100" \
+            > "$RUNNER_TEMP/assembly-evidence/component-jobs.json"
+          python3 - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+          evidence = Path(os.environ['RUNNER_TEMP']) / 'assembly-evidence'
+          run = json.loads((evidence / 'component-run.json').read_text())
+          jobs = json.loads((evidence / 'component-jobs.json').read_text())
+          if (run.get('head_sha') != os.environ['COMPONENT_REVISION']
+                  or run.get('repository', {}).get('full_name') != os.environ['GITHUB_REPOSITORY']
+                  or run.get('path') != '.github/workflows/bluefe-package.yml'):
+              raise SystemExit('source run does not match the requested component build')
+          if jobs.get('total_count') != len(jobs.get('jobs', [])):
+              raise SystemExit('incomplete source job listing')
+          linux = [job for job in jobs['jobs'] if job.get('name') == 'linux']
+          if (len(linux) != 1 or linux[0].get('status') != 'completed'
+                  or linux[0].get('conclusion') != 'success'):
+              raise SystemExit('the component build and qualification job must have succeeded')
+          print('Qualified component:', run['html_url'], run['head_sha'])
+          PY
+      - uses: actions/download-artifact@v4
+        with:
+          name: bluefe-pristine-x86_64-unknown-linux-gnu-${{ env.COMPONENT_REVISION }}
+          run-id: ${{ env.COMPONENT_RUN_ID }}
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/bluefe-component
+      - name: Verify the complete component payload and compiler identity
+        working-directory: ${{ runner.temp }}/bluefe-component
+        run: |
+          sha256sum -c SHA256SUMS
+          python3 - <<'PY'
+          import hashlib
+          import json
+          import os
+          from pathlib import Path, PurePosixPath
+          import subprocess
+          import tarfile
+
+          def digest(path):
+              with path.open('rb') as stream:
+                  return hashlib.file_digest(stream, 'sha256').hexdigest()
+
+          revision = os.environ['COMPONENT_REVISION']
+          target = 'x86_64-unknown-linux-gnu'
+          archive = Path(f'bluefe-pristine-{revision[:12]}-{target}.tar.gz')
+          destination = Path(os.environ['RUNNER_TEMP']) / 'bluefe-compatibility'
+          destination.mkdir()
+          with tarfile.open(archive) as bundle:
+              bundle.extractall(destination, filter='data')
+          root = destination / 'bluefe-rust'
+          record = json.loads((root / 'bluefe-package.json').read_text())
+          if record != json.loads(Path('source-and-qualification.json').read_text()):
+              raise SystemExit('component provenance copies disagree')
+          source = record.get('source', {})
+          qualification = record.get('qualification', {})
+          if (record.get('schema') != 'bluefe.pristine-rust-package.v1'
+                  or record.get('role') != 'rustc-compatibility-component'
+                  or record.get('target') != target
+                  or source.get('repository') != 'glopyglerky/blueFe'
+                  or source.get('commit') != revision
+                  or source.get('config_sha256') != digest(Path('bootstrap.toml'))):
+              raise SystemExit('component provenance does not match its requested source')
+          gates = ('relocated_sysroot', 'cargo_workspace_build', 'cargo_workspace_tests_and_doctests',
+                   'proc_macro', 'build_script', 'runtime', 'panic_recovery_and_drop', 'type_error_rejection')
+          if any(qualification.get(gate) is not True for gate in gates):
+              raise SystemExit('component qualification is incomplete')
+          rows = json.loads(Path('payload-manifest.json').read_text())
+          expected = set()
+          for row in rows:
+              relative = PurePosixPath(row['path'])
+              if (relative.is_absolute() or '..' in relative.parts
+                      or relative.as_posix() != row['path'] or row['path'] in expected):
+                  raise SystemExit('invalid or duplicate component payload path')
+              expected.add(row['path'])
+              path = root / row['path']
+              if row['type'] == 'symlink':
+                  if (not path.is_symlink() or os.readlink(path) != row['target']
+                          or not path.resolve().is_relative_to(root.resolve())):
+                      raise SystemExit('component symlink mismatch: ' + row['path'])
+              elif row['type'] == 'file':
+                  if (path.is_symlink() or not path.is_file()
+                          or path.stat().st_size != row['bytes']
+                          or path.stat().st_mode & 0o777 != row['mode']
+                          or digest(path) != row['sha256']):
+                      raise SystemExit('component file mismatch: ' + row['path'])
+              else:
+                  raise SystemExit('unsupported component payload member')
+          actual = {path.relative_to(root).as_posix() for path in root.rglob('*')
+                    if path.is_symlink() or not path.is_dir()}
+          if expected != actual:
+              raise SystemExit('component payload file set differs from its manifest')
+          env = {key: value for key, value in os.environ.items()
+                 if not key.startswith(('LD_', 'DYLD_'))
+                 and key not in ('LIBPATH', 'SHLIB_PATH', 'LDR_PRELOAD')}
+          versions = {name: subprocess.check_output(
+              [root / 'bin' / name, '--version', '--verbose'], text=True, env=env, timeout=30)
+              for name in ('rustc', 'rustdoc', 'cargo')}
+          if qualification.get('versions') != versions:
+              raise SystemExit('component tool versions differ from qualification evidence')
+          identity = dict(line.split(': ', 1) for line in versions['rustc'].splitlines() if ': ' in line)
+          if identity.get('commit-hash') != revision or identity.get('host') != target:
+              raise SystemExit('actual compiler does not match the requested source and target')
+          hashes = {name: digest(root / 'bin' / name) for name in versions}
+          if record.get('tool_sha256') != hashes:
+              raise SystemExit('component tools differ from the qualified binaries')
+          sysroot = subprocess.check_output(
+              [root / 'bin/rustc', '--print', 'sysroot'], text=True, env=env, timeout=30).strip()
+          if Path(sysroot).resolve() != root.resolve():
+              raise SystemExit('component selected another sysroot after relocation')
+          evidence = {'schema': 'bluefe.lustr-assembly-inputs.v1',
+                      'component_run_id': int(os.environ['COMPONENT_RUN_ID']),
+                      'component_revision': revision, 'component_archive_sha256': digest(archive),
+                      'lustr_revision': os.environ['LUSTR_REVISION'],
+                      'tool_sha256': hashes, 'versions': versions,
+                      'payload_files_verified': len(rows), 'relocated_sysroot': True}
+          (Path(os.environ['RUNNER_TEMP']) / 'assembly-evidence/verified-inputs.json').write_text(
+              json.dumps(evidence, indent=2) + '\n')
+          print(json.dumps(evidence, indent=2))
+          PY
+      - uses: actions/checkout@v4
+        with:
+          repository: glopyglerky/lustr
+          ref: ${{ env.LUSTR_REVISION }}
+          path: lustr
+      - name: Install native build inputs
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential pkg-config
+          rustup toolchain install 1.99.1 --profile minimal
+      - name: Verify unchanged Lust and build native compiler
+        working-directory: lustr
+        run: |
+          test "$(git rev-parse HEAD)" = "$LUSTR_REVISION"
+          rustc --edition=2024 tools/lust-upstream-check.rs -o "$RUNNER_TEMP/lust-upstream-check"
+          "$RUNNER_TEMP/lust-upstream-check"
+          compiler/native/scripts/build-tcc.sh
+          cargo build --manifest-path compiler/native/Cargo.toml --release --locked
+          python3 tools/build-native-cargo.py \
+            --repository "$GITHUB_WORKSPACE/lustr" \
+            --cargo "$(rustup which cargo)" --rustc "$(rustup which rustc)" \
+            --tcc-root "$GITHUB_WORKSPACE/lustr/compiler/native/third_party/tcc" \
+            --target-dir "$RUNNER_TEMP/lustr-native-cargo" \
+            --receipt "$RUNNER_TEMP/native-cargo-build.json"
+          cargo vendor --manifest-path compiler/native/Cargo.toml --locked --offline \
+            "$RUNNER_TEMP/native-vendor" > "$RUNNER_TEMP/native-vendor-config.toml"
+      - name: Assemble the combined compiler package
+        working-directory: lustr
+        run: |
+          python3 tools/package-toolchain.py \
+            --output dist/bluefe-lustr-native-preview-x86_64-unknown-linux-gnu \
+            --native-bin compiler/native/target/release \
+            --native-cargo-bin "$RUNNER_TEMP/lustr-native-cargo/x86_64-unknown-linux-gnu/gate/lustr-native" \
+            --native-cargo-receipt "$RUNNER_TEMP/native-cargo-build.json" \
+            --rust-root "$RUNNER_TEMP/bluefe-compatibility/bluefe-rust" \
+            --vendor-dir "$RUNNER_TEMP/native-vendor" \
+            --compatibility-origin bluefe
+      - name: Qualify the combined package after relocation
+        working-directory: lustr
+        run: |
+          python3 tools/qualify-package.py \
+            --package dist/bluefe-lustr-native-preview-x86_64-unknown-linux-gnu \
+            --baseline-native compiler/native/target/release/lust \
+            --output dist/package-qualification.json
+          python3 tools/native-qualification.py \
+            --lust "$GITHUB_WORKSPACE/lustr/dist/bluefe-lustr-native-preview-x86_64-unknown-linux-gnu/bin/lust" \
+            --rustc "$GITHUB_WORKSPACE/lustr/dist/bluefe-lustr-native-preview-x86_64-unknown-linux-gnu/bin/rustc" \
+            --output "$GITHUB_WORKSPACE/lustr/dist/native-qualification"
+          "$RUNNER_TEMP/lust-upstream-check"
+      - name: Archive the combined qualified package
+        working-directory: lustr
+        run: |
+          tar --sort=name --owner=0 --group=0 --numeric-owner \
+            --mtime="@$(git show -s --format=%ct HEAD)" \
+            -C dist -cf - bluefe-lustr-native-preview-x86_64-unknown-linux-gnu \
+            | gzip -n -6 > dist/bluefe-lustr-native-preview-x86_64-unknown-linux-gnu.tar.gz
+          cd dist
+          sha256sum bluefe-lustr-native-preview-x86_64-unknown-linux-gnu.tar.gz > SHA256SUMS
+      - uses: actions/upload-artifact@v4
+        with:
+          name: bluefe-lustr-native-preview-x86_64-${{ github.sha }}
+          path: |
+            lustr/dist/bluefe-lustr-native-preview-x86_64-unknown-linux-gnu.tar.gz
+            lustr/dist/SHA256SUMS
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 30
+      - name: Retain combined qualification and component evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bluefe-lustr-package-evidence-${{ github.sha }}
+          path: |
+            ${{ runner.temp }}/assembly-evidence
+            ${{ runner.temp }}/native-cargo-build.json
+            ${{ runner.temp }}/native-cargo-build.cargo.log
+            lustr/dist/package-qualification.json
+            lustr/dist/native-qualification
+            lustr/dist/bluefe-lustr-native-preview-x86_64-unknown-linux-gnu/lustr-toolchain.json
+            lustr/dist/bluefe-lustr-native-preview-x86_64-unknown-linux-gnu/bluefe-package.json
+          if-no-files-found: warn
+          retention-days: 14

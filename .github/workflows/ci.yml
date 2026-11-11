@@ -46,6 +46,7 @@ jobs:
   # It calculates which jobs should be executed, based on the data of the ${{ github }} context.
   # If you want to modify CI jobs, take a look at src/ci/github-actions/jobs.yml.
   calculate_matrix:
+    if: github.repository == 'rust-lang/rust'
     name: Calculate job matrix
     runs-on: ubuntu-26.04-arm
     outputs:
