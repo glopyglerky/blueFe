@@ -65,6 +65,7 @@ jobs:
         working-directory: lustr
         run: |
           compiler/native/scripts/build-tcc.sh
+          cargo fetch --locked --manifest-path crates/lustr-native/Cargo.toml --target x86_64-unknown-linux-gnu
           python3 tools/build-native-cargo.py \
             --repository "$GITHUB_WORKSPACE/lustr" \
             --cargo "$(rustup which cargo)" --rustc "$(rustup which rustc)" \
