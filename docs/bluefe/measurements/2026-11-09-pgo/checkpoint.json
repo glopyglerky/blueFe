@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-09",
+  "experiment": "stage2-compiler-pgo-pilot",
+  "status": "diagnostics_pending",
+  "timed_observations": 0,
+  "speedup": null,
+  "released": false,
+  "source": {
+    "bluefe_commit": "1b74388e196ee8813f38ba9eeb6d4ab43b6b1071",
+    "bluefe_tree": "929fedcb94afe621cf19ca636037da6474a45982",
+    "lustr_gitlink": "07470b20464bf097c3c88983124aff56c5e44f9a",
+    "llvm_gitlink": "0a5579eb649d3634a9c30ac873300cc2944fa070"
+  },
+  "sha256": {
+    "control_payload_manifest": "cd7ca233f21093aa3f18be2a6318fe305eeae787b837c00d676079400a6c78e4",
+    "candidate_payload_manifest": "ee54af2b94f14adbabfeb48f3ee7f6f1d322043989019521566bd6206ed9c398",
+    "candidate_rollback_payload_manifest": "ee54af2b94f14adbabfeb48f3ee7f6f1d322043989019521566bd6206ed9c398",
+    "merged_profile": "61ddb447d621a2c5554f87af737dea2b6b6df082620fc00dc536e775822d16da",
+    "upstream_bootstrap_cargo": "16e827eede03ad04b2be898c42ba40ec434fbb6cbbc13fc60354fdf4fd29a36f",
+    "runtime_review_receipt": "6e86a0561f2ca2173d786be97f4a6582595e9d980c7e70ea9af8ea84aa78d201",
+    "privacy_handoff": "6e1c8eddf95652caae007aea38675fc9551a3ff0e6eb0d847fcde320ff510296",
+    "diagnostic_review_receipt": "b61bc525d73d338c30cc3f55a656f7e0c967c04a1e7af2dc7f9efcb62c0d5abe",
+    "static_attribution_handoff": "07cb87cb624ebbf54989447adf2ce7356b67fea9fbe365f1cc3cb9e94000f610",
+    "static_attribution_table": "73bf76b7af761b0c3e057f650ff26b83f11c30977f85782f0ad019ebc7b9a03c"
+  },
+  "training": {
+    "scope": "pinned Lustr coordinator targets only; public application holdouts excluded",
+    "merge_weights": [1, 1, 1],
+    "reported_stratum_totals": [224947920, 467067683, 548652800],
+    "reported_merged_total": 1240668403,
+    "indexed_function_records": 241664
+  },
+  "diagnostics": {
+    "warning_occurrences": 678,
+    "distinct_function_hash_pairs": 650,
+    "modules": 134,
+    "all_reported_discarded_counts_zero": true,
+    "names_with_other_context_zero_records": 56,
+    "other_context_zero_records": 1277,
+    "names_without_checked_exact_mangled_base_record": 594,
+    "causes_unresolved": 650,
+    "counter_context_transfers": 0,
+    "coverage_fraction": null
+  },
+  "qualification": {
+    "runtime": "ACCEPT_RUNTIME_ONLY",
+    "runtime_commands": 42,
+    "privacy": "ACCEPT_BOUNDED_RUNTIME_PRIVACY",
+    "diagnostics": "PENDING",
+    "wasm_execution": "UNQUALIFIED",
+    "control_historical_preservation": "FAILED; retrospective input binding accepted with recorded limitations"
+  },
+  "evidence_availability": "Aggregate public summary; raw profiles, logs and review retained privately. Digests are bindings, not a public reproduction bundle."
+}

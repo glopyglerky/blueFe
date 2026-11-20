@@ -1,0 +1,31 @@
+name: Unchanged Rust source
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'compiler/**'
+      - 'library/**'
+      - 'src/bootstrap/**'
+      - 'src/stage0'
+      - 'src/tools/bump-stage0/**'
+      - 'upstream/rust.pin'
+      - 'tools/bluefe-rust-upstream-check.rs'
+      - '.github/workflows/bluefe-upstream.yml'
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  upstream:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - run: rustup toolchain install 1.99.1 --profile minimal
+      - name: Verify protected upstream source
+        run: |
+          rustc +1.99.1 --edition=2024 tools/bluefe-rust-upstream-check.rs -o "$RUNNER_TEMP/bluefe-upstream-check"
+          "$RUNNER_TEMP/bluefe-upstream-check"
+      - name: Verify drift rejection
+        run: |
+          rustc +1.99.1 --edition=2024 --test tools/bluefe-rust-upstream-check.rs -o "$RUNNER_TEMP/bluefe-upstream-tests"
+          "$RUNNER_TEMP/bluefe-upstream-tests"
