@@ -1,0 +1,106 @@
+name: BlueFe with Lustr only
+
+on:
+  push:
+    branches: ['package/qualified-native*']
+    paths:
+      - '.github/workflows/bluefe-lustr-only.yml'
+      - 'tools/bluefe-native/**'
+      - 'upstream/rust.pin'
+      - 'lustr'
+  pull_request:
+    paths:
+      - '.github/workflows/bluefe-lustr-only.yml'
+      - 'tools/bluefe-native/**'
+      - 'upstream/rust.pin'
+      - 'lustr'
+  workflow_dispatch:
+    inputs:
+      lustr_revision:
+        description: Exact native Lustr implementation commit
+        type: string
+        default: 0bda81337a528a8ab910208357b65693b2f06fbb
+
+permissions:
+  contents: read
+
+concurrency:
+  group: bluefe-lustr-only-${{ github.event.pull_request.head.ref || github.ref_name }}
+  cancel-in-progress: true
+
+jobs:
+  native-build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    env:
+      LUSTR_REVISION: ${{ inputs.lustr_revision || '0bda81337a528a8ab910208357b65693b2f06fbb' }}
+      RUSTUP_TOOLCHAIN: 1.99.1
+      PYTHONDONTWRITEBYTECODE: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          path: blueFe
+          fetch-depth: 128
+      - uses: actions/checkout@v4
+        with:
+          repository: glopyglerky/lustr
+          ref: ${{ env.LUSTR_REVISION }}
+          path: lustr
+      - name: Install native compiler bootstrap inputs
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential pkg-config cmake ninja-build strace libssl-dev libcurl4-openssl-dev zlib1g-dev
+          rustup toolchain install 1.99.1 --profile minimal
+          [[ "$LUSTR_REVISION" =~ ^[0-9a-f]{40}$ ]]
+          test "$(git -C lustr rev-parse HEAD)" = "$LUSTR_REVISION"
+      - name: Verify protected source and the native build contract
+        run: |
+          rustc --edition=2024 blueFe/tools/bluefe-rust-upstream-check.rs -o "$RUNNER_TEMP/bluefe-source-guard"
+          rustc --edition=2024 lustr/tools/lust-upstream-check.rs -o "$RUNNER_TEMP/lust-source-guard"
+          (cd blueFe && "$RUNNER_TEMP/bluefe-source-guard")
+          (cd lustr && "$RUNNER_TEMP/lust-source-guard")
+          python3 -m unittest discover -s blueFe/tools/bluefe-native -v
+      - name: Bootstrap the actual native Lustr executable
+        working-directory: lustr
+        run: |
+          compiler/native/scripts/build-tcc.sh
+          cargo fetch --locked --manifest-path crates/lustr-native/Cargo.toml --target x86_64-unknown-linux-gnu
+          python3 tools/build-native-cargo.py \
+            --repository "$GITHUB_WORKSPACE/lustr" \
+            --cargo "$(rustup which cargo)" --rustc "$(rustup which rustc)" \
+            --tcc-root "$GITHUB_WORKSPACE/lustr/compiler/native/third_party/tcc" \
+            --target-dir "$RUNNER_TEMP/lustr-build" \
+            --receipt "$RUNNER_TEMP/lustr-build.json"
+      - name: Initialize unchanged Rust build inputs
+        working-directory: blueFe
+        run: git submodule update --init --depth=1 library/backtrace src/tools/cargo
+      - name: Build unchanged BlueFe using only Lustr
+        working-directory: blueFe
+        run: |
+          python3 tools/bluefe-native/build.py \
+            --source "$GITHUB_WORKSPACE/blueFe" \
+            --lustr "$RUNNER_TEMP/lustr-build/x86_64-unknown-linux-gnu/gate/lustr-native" \
+            --cargo "$(rustup which cargo)" \
+            --guard "$RUNNER_TEMP/bluefe-source-guard" \
+            --work "$RUNNER_TEMP/bluefe-native"
+      - name: Recheck protected source
+        if: always()
+        run: |
+          (cd blueFe && "$RUNNER_TEMP/bluefe-source-guard")
+          (cd lustr && "$RUNNER_TEMP/lust-source-guard")
+      - name: Retain native build evidence, including failures
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bluefe-lustr-only-${{ github.event.pull_request.head.sha || github.sha }}
+          path: |
+            ${{ runner.temp }}/lustr-build.json
+            ${{ runner.temp }}/lustr-build.cargo.log
+            ${{ runner.temp }}/bluefe-native/qualification.json
+            ${{ runner.temp }}/bluefe-native/bootstrap.toml
+            ${{ runner.temp }}/bluefe-native/build.log
+            ${{ runner.temp }}/bluefe-native/execve.log
+            ${{ runner.temp }}/bluefe-native/unexpected-compiler.log
+          if-no-files-found: warn
+          retention-days: 30

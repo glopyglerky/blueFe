@@ -1,0 +1,8 @@
+repository = "https://github.com/rust-lang/rust"
+revision = "5b7b37aefcb5b2fba3c2392bc9065b9e4602d494"
+root_tree = "9896086e2e320d7a5ced48d162cc9af159b004d7"
+compiler = "9bb98adca40010656ac057f2c4103cf72f5cdc6f"
+library = "f48d6700750a1dc11b2f8f1df91a26dee3ef13fb"
+src/bootstrap = "95743e45d2df74cb11f10c1be297dbeee521ad6f"
+src/tools/bump-stage0 = "e21cb8dfcd60252ed46d9ab2fec480a1631dadc5"
+src/stage0 = "65357a133fe0930b2c7a876fc46fa63cbd572daf"
