@@ -1,4 +1,11 @@
-# Matching component build recipe
+# Historical matching component build recipe
+
+This recipe belongs to the recorded compatibility preview. Its source-specific
+stage0, bootstrap, coordinator and backend assumptions are not current build
+instructions or a plan for Lustr's full replacement. Preserve it for reproducing
+that evidence. Current work follows [the compiler direction](../native-lustr-status.md)
+and blueFe's unchanged upstream bootstrap. Do not restore historical compiler
+or packaging changes to make this old recipe run against a newer source.
 
 Status: the matched producer build completed for
 [preview-2026.11.09-1](../releases/preview-2026.11.09-1.md). Its compiler,

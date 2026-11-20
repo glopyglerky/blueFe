@@ -1,16 +1,20 @@
-# BlueFe integration contract
+# Historical BlueFe compatibility integration
 
-This records the transitional compatibility integration. The
-[native Lustr requirement and current gaps](native-lustr-status.md) supersede
-any interpretation that this coordinator completes the project. For the latest
-published artifact, use the [versioned preview record](releases/preview-2026.11.09-2.md);
-the earlier payload qualification below retains its original identities and scope.
+This preserves the November 2026 transitional compatibility integration and its
+original evidence. It is not the current implementation plan or a recipe for a
+new Lustr release. The [current compiler direction](native-lustr-status.md)
+requires exclusive Lust ownership and only the necessary imported complement.
+The [versioned compatibility preview](releases/preview-2026.11.09-2.md) and
+[later bounded native preview](releases/native-preview-2026.11.15-1.md) retain
+their separate source and artifact identities.
 
-This contract describes BlueFe control and packaging, not a new implementation
-of Rust semantics. Full Rust is compiled by produced rustc behind Lustr. Native
-Lust is a separate, restricted compiler. LLVM, TCC, native libraries, upstream
-unsafe Rust and operating-system interfaces prevent a whole-stack memory-safety
-claim. No universal speedup or semantic-equivalence theorem is asserted.
+The compatibility contract below described BlueFe control and packaging, not a
+new implementation of Rust semantics. In that implementation, produced rustc
+compiled full Rust behind the coordinator and native Lust was separate and
+restricted. That route cannot implement the current Lustr contract. LLVM, TCC,
+native libraries, upstream unsafe Rust and operating-system interfaces prevent
+a whole-stack memory-safety claim. No universal speedup or semantic-equivalence
+theorem is asserted.
 
 ## Invocation and source identity
 
@@ -25,7 +29,8 @@ The retained previews still contain their original separate coordinator and
 produced toolchain. The commands below describe that versioned compatibility
 interface, not automatic native Lust support in those existing assets.
 
-For applications, use an absolute retained toolchain root:
+For reproduction of that retained compatibility interface only, its commands
+used an absolute toolchain root:
 
 ```sh
 "$TOOLCHAIN/bin/lustr" --bluefe-root "$TOOLCHAIN" plan test --offline

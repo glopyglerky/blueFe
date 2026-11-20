@@ -4,13 +4,39 @@
 
 Work stays in `glopyglerky/blueFe` and `glopyglerky/lustr`. Follow
 [the upstream preservation policy](docs/bluefe/upstream-preservation.md).
-Protected Rust scopes must match `upstream/rust.pin`; embedded Lust must match
-Lustr's separate pin. Keep project-owned integration outside those scopes.
-Any proposed divergence needs demonstrated necessity and faster equivalent-workload
-results before admission. No hidden overlays or build-time patches. Correctness
-alone is not speed evidence. Run the Rust source guard before publication and
-preserve historical release bindings. The user's fork-only acknowledgment
-applies; nothing here authorizes an upstream submission.
+Protected Rust scopes must match `upstream/rust.pin`. Keep project-owned
+integration outside those scopes. A proposed divergence from these Rust scopes
+needs demonstrated necessity and faster equivalent-workload results before
+admission. Lustr's separate source and integration policy governs its Lust
+reference and qualified integration changes. No hidden overlays or build-time
+patches. Correctness alone is not speed evidence. Run the Rust source guard
+before publication and preserve historical release bindings. The user's
+fork-only acknowledgment applies; nothing here authorizes an upstream submission.
+
+## Current Lustr direction
+
+Read [the current compiler direction](docs/bluefe/native-lustr-status.md) and
+Lustr's linked canonical contract before planning compiler integration. Lustr
+must exclusively compile every operation its Lust implementation covers and
+import only the upstream implementation needed for the remaining operations.
+The complete Rust fork stays here for preservation, reference qualification and
+selective extraction. It is not a product fallback or a second frontend for
+Lust-owned work.
+
+Refresh Lustr's default and active correction heads, instructions, checks,
+source pins and import inventory. The root `lustr` gitlink and versioned preview
+records preserve an older compatibility checkpoint; they do not control current
+implementation direction. Do not advance that gitlink to unmerged work or
+restore old coordinator packaging as part of a documentation correction.
+
+Keep the independent Rust oracle outside generation of Lustr's output artifacts
+and product execution. A declared bootstrap compiler may build Lustr itself;
+record that construction tool separately from the compiler producing requested
+output artifacts. Preserve native checked state, exact semantic dependencies and
+emission reuse. No preliminary source scan, trial compilation, compiler-failure
+retry, optional full-driver product feature or duplicate supported checking is
+an acceptable completion route. Full coverage and measured overall speedup
+remain separate from source preservation and bounded interoperability results.
 
 ## LLM usage policy
 
