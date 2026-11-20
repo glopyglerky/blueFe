@@ -1,54 +1,42 @@
 # blueFe
 
-blueFe is a fork of Rust integrating [Lustr](https://github.com/glopyglerky/lustr).
-The required compiler is a complete rustc replacement: Lustr must contain
-unchanged upstream Lust, use it for everything it supports, and supply the
-remaining Rust support in Lustr-owned code. That replacement is incomplete.
+blueFe preserves the full upstream Rust fork. [Lustr](https://github.com/glopyglerky/lustr)
+is the complete-compiler project: Lust exclusively compiles every operation it
+covers, and Lustr imports only the upstream implementation needed for the
+remaining Rust work. The complete replacement is unfinished.
 
-The protected Rust compiler, standard library and bootstrap now match upstream
+Read the [current compiler direction](docs/bluefe/native-lustr-status.md), which
+links Lustr's canonical contract and active correction. blueFe supplies source
+provenance, selective extraction and an independent reference compiler. A full
+rustc fallback, complete-driver library or duplicate checking of Lust-owned
+work does not implement that goal. Preserve Lust's retained state and speed.
+
+The protected Rust compiler, standard library and bootstrap match upstream
 `4b5350e87e487aed08ab2f9f0160a4b2616438bc`. Earlier compiler compatibility edits
-and bootstrap coordinator hooks have been removed. `./x` uses upstream bootstrap;
-Lustr integration belongs outside that implementation. The
-[upstream preservation gate](docs/bluefe/upstream-preservation.md) requires both
-necessity and faster equivalent-workload evidence for any future divergence.
-This source checkpoint does not replace existing release assets. See the
-[native integration status](docs/bluefe/native-lustr-status.md).
+and bootstrap coordinator hooks have been removed. `./x` uses upstream bootstrap.
+The [upstream preservation gate](docs/bluefe/upstream-preservation.md) requires
+necessity and faster equivalent-workload evidence for divergence from these
+protected Rust scopes. Lustr's own source policy separately governs its pristine
+Lust reference and explicit integration changes.
 
-## Use a packaged toolchain
+## Retained previews
 
-Use [preview-2026.11.09-2](https://github.com/glopyglerky/blueFe/releases/tag/preview-2026.11.09-2)
-for Linux x86_64 GNU instead of rebuilding the compiler for each project.
-Download all six assets into a versioned directory outside source checkouts.
-The bundle requires GLIBC 2.39, GLIBCXX_3.4.32 and the libraries recorded in
-`platform.json`; native linking also needs a C compiler, linker and development
-files. Other hosts are unqualified.
+The versioned [compatibility preview](docs/bluefe/releases/preview-2026.11.09-2.md)
+contains a produced Rust compiler, Cargo, matching tools and a coordinator. It
+contains no native Lust. The later
+[native preview](docs/bluefe/releases/native-preview-2026.11.15-1.md) contains a
+bounded Lust path and an official full Rust compatibility SDK. Both records
+preserve their original download instructions, checksums, source identities,
+qualification and platform limits.
 
-```sh
-sha256sum -c SHA256SUMS
-tar --zstd -xf bluefe-lustr-preview-2026.11.09-2-x86_64-unknown-linux-gnu.tar.zst
-BLUEFE_ROOT="$(pwd)/bluefe-lustr"
-"$BLUEFE_ROOT/bin/lustr" --bluefe-root "$BLUEFE_ROOT" doctor
-```
+These are historical artifacts, not completed Lustr replacements or a current
+release recipe. This source checkpoint neither rebuilds nor replaces them.
+Continue Lustr through its active correction rather than using an old
+`--bluefe-root` coordinator to fill missing native coverage. The
+[historical integration contract](docs/bluefe/integration-contract.md) and
+[scoped proofs](docs/bluefe/proofs/README.md) remain available for reproduction.
 
-From a Rust project, use that absolute root with `build` or `test`. Keep the
-compiler, sysroot and compiler-private tools together. Cargo is the identified
-upstream bootstrap component. Application builds require no BlueFe source
-checkout, compiler bootstrap, installation or global toolchain change.
-
-The preview includes matching Clippy, rustfmt and experimental Cranelift with
-unwinding. Select optional tools by their bundled absolute paths with explicit
-`CARGO`, `RUSTC` and `RUSTDOC`; an ambient Cargo plugin can select another
-installation. Native Lust/TCC/semantic engines and rustc-dev metadata are absent.
-Native execution and Wasm linking are qualified; Wasm execution is unqualified.
-This package does not implement the required native Lustr replacement. Its
-compiler-build measurements do not measure Lust's native acceleration.
-See the [release record](docs/bluefe/releases/preview-2026.11.09-2.md) for exact
-source bindings, checksums, checks and limits.
-
-See the [integration contract](docs/bluefe/integration-contract.md) and
-[scoped proofs and qualification evidence](docs/bluefe/proofs/README.md).
-
-## Measured performance
+## Historical performance evidence
 
 The [matched CGU16/ThinLTO stage2 pilot](docs/bluefe/measurements/2026-11-09-cgu16-thinlto/README.md)
 completed 108 timed metadata-only root checks. The optimized package used 17.9%
@@ -85,12 +73,14 @@ records a built candidate, passing runtime checks, exact hashes and narrow
 mathematical arguments. Its missing-profile diagnostic gate remains unresolved;
 no PGO timing or speedup is reported, and it does not replace the packaged preview.
 
-## Build BlueFe from source
+## Build the upstream reference from source
 
-Lustr is pinned as the root `lustr/` submodule. Its source and integration remain
-separate from the protected upstream compiler and bootstrap. Initialize required
-submodules explicitly and use upstream's normal build configuration. `./x` no
-longer builds or inserts the compatibility coordinator into each Cargo call.
+The root `lustr/` gitlink preserves an older compatibility checkpoint. Refresh
+Lustr's canonical contract and active implementation before integration work;
+initializing that gitlink does not select the current correction. Keep the
+protected upstream compiler and bootstrap unchanged. The commands in this
+section build the independent Rust reference, not Lustr's missing product
+compiler. `./x` no longer builds or inserts the compatibility coordinator.
 
 The upstream stage0 data and generator are restored byte for byte. Their beta
 pin is dated 2026-11-10. The previous fork's version-floor heuristic and nightly
@@ -111,28 +101,19 @@ Use a build directory on a filesystem with enough space, configured through
 `build.build-dir` in `bootstrap.toml`. Select the whole `library` tree so the
 sysroot includes `proc_macro` and the test harness as well as `std`. Set
 `rust.omit-git-hash = false` to include the source commit in compiler version
-output. Upstream's prerequisite and LLVM setup
-instructions below still apply. The produced native sysroot is
+output. Follow the upstream prerequisite and LLVM setup instructions linked
+from `CONTRIBUTING.md`. The produced native sysroot is
 `<build-dir>/x86_64-unknown-linux-gnu/stage1`; its `bin/rustc` is distinct from
 the downloaded stage0 compiler.
 
-For an application build, select that produced compiler explicitly:
-
-```sh
-/path/to/lustr --bluefe-root /path/to/assembled-toolchain \
-  build --target x86_64-unknown-linux-gnu
-```
-
-The assembled directory must contain `bin/cargo`, `bin/rustc`, `bin/rustdoc`,
-and the produced sysroot libraries. Cargo remains an explicitly identified
-upstream component. The selector preserves project arguments, compiler wrappers,
-flags and profiles; an inherited explicit sysroot override still takes effect.
-Use `lustr --bluefe-root /path/to/assembled-toolchain doctor` to inspect tools.
-
-`rustc --print sysroot` must identify the produced sysroot. Select
-`wasm32-unknown-unknown` for wasm builds. Native lustr and its separately pinned
-Cranelift/semantic inspection tools are not interchangeable with this compiler;
-their use requires separate compatibility qualification.
+When qualifying Lustr outputs, identify the produced compiler explicitly as
+the independent upstream reference. Keep compiler-private components, sysroots,
+flags and source identity matched. A declared bootstrap compiler may build
+Lustr itself; this does not permit it to supply the semantics or artifacts
+requested from Lustr. An independent stock Rust consumer may verify an artifact
+that Lustr has already constructed from genuine native checked completion.
+Artifact creation, downstream rejection, linking and execution need separate
+observations; a direct-object or C-ABI bypass is not Rust crate interoperability.
 
 Optional codegen backends need explicit upstream build options and matching
 compiler, sysroot and runtime qualification. Bootstrap has no fork-specific
@@ -146,22 +127,23 @@ submission to `rust-lang/rust`.
 
 | Path | Role |
 | --- | --- |
-| `lustr/` | Pinned Lustr project. Compiler integration is owned here; upstream bootstrap does not build the coordinator. |
+| `lustr/` | Retained older Lustr gitlink. Refresh the active Lustr correction before implementation; upstream bootstrap does not build the coordinator. |
 | `compiler/` | Protected, unchanged upstream Rust compiler implementation. |
 | `library/` | Standard libraries produced for the selected native and WebAssembly targets. |
 | `src/bootstrap/` and `x` | Unchanged upstream bootstrap machinery. |
 | `docs/bluefe/` | Project decisions, source-layout exceptions, divergence and qualification records. |
 | `upstream/rust.pin` and `tools/bluefe-rust-upstream-check.rs` | Upstream identities and a source-drift guard. |
 
-The inherited compiler and bootstrap paths remain because upstream build,
-qualification and synchronization contracts use them. This repository has one
-working compiler implementation. Required source is retained until its
-replacement works and passes qualification.
+The full compiler and bootstrap remain here for upstream synchronization,
+source preservation, independent reference qualification and selective
+extraction. They are not waiting to be copied wholesale into Lustr.
 
-The current priority is a usable compiler/toolchain and measured improvements.
-Full native Lustr replacement and migration toward memory-safe Rust are future
-work. TinyCC, LLVM, rustc internals and platform dependencies retain their actual
-implementation and safety boundaries during that work.
+Complete Lustr replacement is the active compiler goal. Correct full coverage
+and a measured overall speedup over matched stock Rust are the first-release
+condition; near-stock subset speed remains the optimization goal. Portability
+work should preserve retained compilation and performance. TinyCC, LLVM, Rust
+internals and platform dependencies retain their actual implementation and
+safety boundaries during that work.
 
 See [the divergence record](docs/bluefe/divergences.md). The original Rust README
 and project information remain available in [upstream Rust](https://github.com/rust-lang/rust).

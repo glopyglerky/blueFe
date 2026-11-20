@@ -1,7 +1,12 @@
 # BlueFe decisions and divergences
 
-blueFe owns its product entry points, primary README, Lustr integration and
-packaging. The protected compiler, library, bootstrap, stage0 and stage0-generator
+blueFe retains the complete Rust fork for upstream preservation, reference
+qualification and selective extraction into Lustr. The
+[current compiler direction](native-lustr-status.md) requires exclusive Lust
+ownership and only the necessary imported complement. Earlier compatibility
+packaging is retained evidence, not a competing Lustr destination.
+
+The protected compiler, library, bootstrap, stage0 and stage0-generator
 sources match upstream Rust `4b5350e87e487aed08ab2f9f0160a4b2616438bc`.
 The [source and performance admission policy](upstream-preservation.md) records
 the exact scopes and requires necessity plus faster equivalent-workload results
@@ -16,23 +21,29 @@ The inherited directories preserve upstream build and qualification contracts.
 Third-party tools and submodules retain their roles and licenses. Their presence
 and unchanged source do not establish whole-toolchain memory safety.
 
-Application builds use an explicit produced toolchain root. Native and wasm
-sysroots are identified separately from the stage0 compiler used to build them.
+Historical compatibility application builds used an explicit produced toolchain
+root. That produced rustc cannot supply Lustr's missing product compilation.
+Independent reference qualification may use it after Lustr has generated the
+output being evaluated. A declared bootstrap compiler may build Lustr itself,
+with that construction identity recorded separately.
+Native and wasm sysroots are identified separately from the stage0 compiler
+used to build them.
 A different nightly backend or semantic driver is not an interchangeable
-component. LLVM remains the default backend until a faster requested path has
-passed its own qualification.
+component. Historical LLVM and alternative-backend observations retain their
+original qualification scopes.
 
-Compiler optimization experiments retain the working preview as the default
-download. The [stage2 PGO checkpoint](measurements/2026-11-09-pgo/README.md)
+Historical compiler optimization experiments retain their preview identities.
+The [stage2 PGO checkpoint](measurements/2026-11-09-pgo/README.md)
 records successful runtime qualification and an unresolved diagnostic gate.
 Profile warnings and missing evidence are retained; an untimed candidate does
 not establish a speed improvement or justify changing the default backend.
 
-Working builds take priority. Independent full-Rust compilation and migration
-toward memory-safe Rust are future goals pursued through measured iteration,
-focused parity tests and preserved rollback. Source movement must keep the
-build usable. Record exact source heads, component hashes, unsupported targets
-and failures with each delivered toolchain.
+Complete Lustr compilation is the active goal. Preserve usable source and
+rollback while integrating genuine native completion and necessary upstream
+services. Full-driver fallback, duplicate supported checking and trial-compile
+routing cannot count as progress toward that goal. Portability changes must
+preserve retained compilation and speed. Record exact source heads, component
+hashes, unsupported targets and failures with each delivered toolchain.
 
 This is personal fork work. Generated changes are not intended for
 rust-lang/rust pull requests. The inherited source and its licensing remain

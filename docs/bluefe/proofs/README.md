@@ -1,5 +1,14 @@
 # Integration proofs and executable evidence
 
+This is the historical compatibility-coordinator record. Its source identities,
+arguments and observed outcomes remain evidence for that implementation only.
+Current upstream restoration removed its bootstrap hooks, version-floor
+preflight and the associated fork tests. The commands below require the
+recorded historical source; running current upstream tests does not reproduce
+that qualification. Follow [the current compiler direction](../native-lustr-status.md)
+for implementation. These proofs do not authorize restoring the coordinator or
+using a complete Rust compiler in Lustr's product path.
+
 These are mathematical arguments about the control program under explicit
 assumptions, backed by small regression/conformance tests. They are not
 machine-checked compiler correctness proofs or performance results.
