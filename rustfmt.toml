@@ -32,6 +32,7 @@ ignore = [
     "library/hashbrown",
     "library/portable-simd",
     "library/stdarch",
+    "/lustr/",
     "src/doc/book",
     "src/doc/edition-guide",
     "src/doc/embedded-book",

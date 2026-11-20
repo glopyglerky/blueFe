@@ -1,0 +1,63 @@
+{
+  "schema": 1,
+  "status": "passed",
+  "command": "python3 -m unittest src.bootstrap.bootstrap_test",
+  "tests": 32,
+  "compiler_source": "7005dc02c9fb6674380eade443022bbc04215276",
+  "control_base": "cf66538177236a167307b07fa8f862f03a524919",
+  "lustr_gitlink": "6339fbb104d6adda4be7e6be7dc637a6a9e5586b",
+  "max_cargo_jobs": 2,
+  "native_target": "x86_64-unknown-linux-gnu",
+  "linked_target": "wasm32-unknown-unknown",
+  "wasm_executed": false,
+  "optional_components_qualified": false,
+  "full_payload_relocation_tested": true,
+  "original_test_log_sha256": "f0bdd4d03e5d60e980afc4533a497dd19e3a13bc7fc5de7ca6c66a15a7438690",
+  "tools": {
+    "rustc": {
+      "sha256": "cf5ac8b996eddcb28a9d986e9ebe77963762effaf85b78810064c17165a3c1e3",
+      "version": "rustc 1.102.0-dev (7005dc02c 2026-11-08)\nbinary: rustc\ncommit-hash: 7005dc02c9fb6674380eade443022bbc04215276\ncommit-date: 2026-11-08\nhost: x86_64-unknown-linux-gnu\nrelease: 1.102.0-dev\nLLVM version: 23.1.5"
+    },
+    "rustdoc": {
+      "sha256": "268229d729caae20d8ac71f68a4c63dce8af489d163897b68757973223c0ae56",
+      "version": "rustdoc 1.102.0-dev (7005dc02c 2026-11-08)"
+    },
+    "cargo": {
+      "sha256": "16e827eede03ad04b2be898c42ba40ec434fbb6cbbc13fc60354fdf4fd29a36f",
+      "version": "cargo 1.101.0-nightly (31d3246e0 2026-10-27)"
+    },
+    "lustr": {
+      "sha256": "04a13eb96d6acfaade12000662155239b0e669e5f60dcdef1932f5086b6d9343",
+      "version": "lustr 0.1.0"
+    }
+  },
+  "source_trees": {
+    "compiler": "fba413f173c6954ccbfcbcf47e87b3c6765d00b6",
+    "library": "d9f07ad7c602018392af2ac3866998e4ab88deb6",
+    "src/tools/rustdoc": "731f33b2dc1a45c110c0ad698b877eac25e5c3e7",
+    "compiler/rustc_codegen_cranelift": "351b3f0bd09415676f1de45dbba25f0e2b869966",
+    "src/tools/clippy": "e309dd30f9654be644504f680447bb3a1eaf45fc",
+    "src/tools/rustfmt": "96be2990a632a3b1599b1ac4568f63e5fb4efe12"
+  },
+  "integration_source_patch_sha256": "5d4c883e900297f8953dc01f7b7ab1fdf62a85ac663b7f07d0f857d230965236",
+  "relocation": {
+    "tests_passed": 32,
+    "path_contains_spaces": true,
+    "reported_sysroot_matches_relocated_root": true,
+    "rustc_dynamic_libraries_resolve_without_original_root": true,
+    "absolute_payload_symlinks": false,
+    "payload_entries": 326,
+    "manifest_sha256": "168994088527a1d8d5c64e5b10a19be27188aef98b56dbfd74bd2d0df56fb4f3",
+    "original_test_log_sha256": "fd87efe1defe16817c175c7350948e2c60a2a68b8af0874060515d9b68208a75",
+    "same_host_only": true
+  },
+  "latest_control_check": {
+    "source_base": "cf66538177236a167307b07fa8f862f03a524919",
+    "lustr_gitlink": "07470b20464bf097c3c88983124aff56c5e44f9a",
+    "tests_passed": 32,
+    "test_log_sha256": "f4a87df7e55f7d3049a8dbe8d8ec7201439cd124871a65a8d2b6c54ae5753d57",
+    "bootstrap_coordinator_built_from_current_submodule": true,
+    "full_rust_fixture_uses_historical_retained_toolchain": true,
+    "new_producer_build_qualified": false
+  }
+}
