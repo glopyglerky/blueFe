@@ -20,8 +20,8 @@ See the [preservation policy](https://github.com/glopyglerky/lustr/blob/82d77539
 ## Rust source baseline
 
 The protected Rust implementation now matches upstream
-`fde8dfd638478da758f93f0e8d9b74d7907f0c9e`. The compiler tree is
-`f60db04e0311ec696c7efda5aa06601cd6bfb56c`; the library tree is
+`5debe6a1244452beced762385f88a51857a915fc`. The compiler tree is
+`711eda7400dedd1b430e6c8aea98d83f106a62a4`; the library tree is
 `224e92d09933c3b2cc13e6b7ec3e4a3a614d1664`. Bootstrap and stage0 are also
 restored to upstream. The [preservation gate](upstream-preservation.md) binds
 all five protected scopes and rejects unqualified source divergence. Existing
