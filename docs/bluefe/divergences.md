@@ -2,7 +2,7 @@
 
 blueFe owns its product entry points, primary README, Lustr integration and
 packaging. The protected compiler, library, bootstrap, stage0 and stage0-generator
-sources match upstream Rust `62bb1f56341b538ddfef5800fcceeb249893a43d`.
+sources match upstream Rust `bc9132daa5c0be572ebb81304f6039d947298e67`.
 The [source and performance admission policy](upstream-preservation.md) records
 the exact scopes and requires necessity plus faster equivalent-workload results
 before admitting a divergence. No new exception is admitted.
