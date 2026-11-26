@@ -13,7 +13,7 @@ Initialized submodule contents need their own checks; a gitlink identifies the
 required source commit but does not prove the checked-out bytes.
 
 The protected sources match upstream Rust
-`b3d5b3ffa10b2a162f2a2b001378d46e32ec3980`. Six earlier compiler-file
+`063219d04d8b3428506da3d8585c0221c07ca15b`. Six earlier compiler-file
 compatibility edits and the bootstrap coordinator hooks have been removed.
 The upstream stage0 inputs are restored too. This is source preservation,
 not a fresh bootstrap or platform qualification. Historical releases retain
