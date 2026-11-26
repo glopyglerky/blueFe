@@ -6,7 +6,7 @@ unchanged upstream Lust, use it for everything it supports, and supply the
 remaining Rust support in Lustr-owned code. That replacement is incomplete.
 
 The protected Rust compiler, standard library and bootstrap now match upstream
-`b3d5b3ffa10b2a162f2a2b001378d46e32ec3980`. Earlier compiler compatibility edits
+`063219d04d8b3428506da3d8585c0221c07ca15b`. Earlier compiler compatibility edits
 and bootstrap coordinator hooks have been removed. `./x` uses upstream bootstrap;
 Lustr integration belongs outside that implementation. The
 [upstream preservation gate](docs/bluefe/upstream-preservation.md) requires both
