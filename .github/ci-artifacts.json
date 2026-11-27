@@ -1,0 +1,85 @@
+{
+  "schema": 1,
+  "upstream_repository": "https://github.com/rust-lang/rust",
+  "upstream_revision": "5b7b37aefcb5b2fba3c2392bc9065b9e4602d494",
+  "upstream_root_tree": "9896086e2e320d7a5ced48d162cc9af159b004d7",
+  "target": "x86_64-unknown-linux-gnu",
+  "llvm_assertions": true,
+  "archive_bytes": 111250876,
+  "archive_sha256": "05cf3c3f0438b041e705c7f8d9903e88e9292ffb19786ce2c2e383da027276d3",
+  "digest_source": "Locally measured from the official HTTPS archive; no publisher-supplied checksum sidecar was available.",
+  "artifact_git_commit": "5b7b37aefcb5b2fba3c2392bc9065b9e4602d494",
+  "artifact_version": "1.102.0-nightly (5b7b37aef 2026-11-08)",
+  "artifact_link_type": "dynamic",
+  "builder_config_sha256": "d83f9c71365eca2b7d12e2d3c2ec18864b5ff0e8d07b5d6e536c7b9bd93d2438",
+  "llvm_invalidation_paths": [
+    "src/llvm-project",
+    "src/bootstrap/download-ci-llvm-stamp",
+    "src/version"
+  ],
+  "source_objects": {
+    "src/llvm-project": "0a5579eb649d3634a9c30ac873300cc2944fa070",
+    "src/bootstrap/download-ci-llvm-stamp": "325719ec7d34765e977ac8bee57033244777a0bc",
+    "src/version": "1c55b869e983c41c6622cd82838d6beaa443fdfd",
+    "src/bootstrap": "95743e45d2df74cb11f10c1be297dbeee521ad6f",
+    "src/build_helper": "e2461a12ed1d69ee49ad9b9ba25037700ccfcba8",
+    "src/stage0": "65357a133fe0930b2c7a876fc46fa63cbd572daf",
+    "src/ci/run.sh": "549f85f35e0618c30dc3d8f5fda4535ee6f2551e",
+    "src/ci/docker/run.sh": "1ad39dfc082cadcd8a509974c0dcbf9b3cf5bd8d",
+    "src/ci/scripts/run-build-from-ci.sh": "55e75800d91c4f62e7b5e58bb7387e9a2930725a",
+    "src/ci/github-actions/jobs.yml": "f2a70b40ca0aab024cac9606924b7b2b1c752f11",
+    "src/ci/docker/host-x86_64/test-tidy/Dockerfile": "c8ffff6135fdee98602ed253257ac74059f5644b",
+    "src/ci/docker/host-x86_64/test-x86_64-gnu-gcc/Dockerfile": "2a721006bfdc03eae71f564f4866312c884e1669",
+    "bootstrap.example.toml": "6c2e3917fb697b30656e57a46a4c9223197fc89e",
+    "src/ci/shared.sh": "9fce68947f42962d9971163d31a120107688a17a",
+    "src/ci/scripts/setup-environment.sh": "d3c55a4d6b4aa87fe2017b9f05b429a2b389944a",
+    "src/ci/citool": "8b8d628823ace94666196c236e06c4bacbfa8a51",
+    "src/ci/channel": "bf867e0ae5b6c08df1118a2ece970677bc479f1b",
+    "src/gcc": "e1c6e07b095d091177376a163da44039475e05e3",
+    "src/bootstrap/download-ci-gcc-stamp": "5bda2193045474b0d007f213dda87de0f9fbaf35",
+    "src/ci": "ae7a1aa424e3c099d233c962f54561b46371b085"
+  },
+  "jobs": {
+    "test-pr-check-1": [
+      "llvm"
+    ],
+    "test-pr-check-2": [
+      "llvm"
+    ],
+    "test-tidy": [
+      "llvm"
+    ],
+    "test-x86_64-gnu-llvm-22": [
+      "gcc"
+    ],
+    "test-x86_64-gnu-tools": [
+      "llvm"
+    ],
+    "test-x86_64-gnu-miri": [
+      "llvm"
+    ],
+    "test-x86_64-gnu-gcc": [
+      "llvm",
+      "gcc"
+    ],
+    "test-x86_64-gnu-gcc-core-tests": [
+      "llvm",
+      "gcc"
+    ],
+    "test-x86_64-gnu-next-trait-solver-polonius": [
+      "llvm"
+    ]
+  },
+  "gcc_invalidation_paths": [
+    "src/gcc",
+    "src/bootstrap/download-ci-gcc-stamp"
+  ],
+  "gcc_artifact": {
+    "archive_bytes": 15413836,
+    "archive_sha256": "208408d82b69d64c231172cd256a631e5a8913d0e071c7e2d4a6b53b7778b0d0",
+    "digest_source": "Locally measured from the official HTTPS archive; no publisher-supplied checksum sidecar was available.",
+    "artifact_git_commit": "5b7b37aefcb5b2fba3c2392bc9065b9e4602d494",
+    "artifact_version": "1.102.0-nightly (5b7b37aef 2026-11-08)",
+    "builder_config_sha256": "cd46b0ee871cdc2b01ab013c125e8474e686be6483cfa0745f322733882427b9"
+  }
+}
