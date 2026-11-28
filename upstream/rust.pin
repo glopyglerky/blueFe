@@ -1,6 +1,6 @@
 repository = "https://github.com/rust-lang/rust"
-revision = "c82ce15637153c025d29abbaff6035a177361788"
-root_tree = "9dcb7fd9c942b098ac5ac2a4a478e8ef80992be6"
+revision = "ba3c4afb46b59a1af2346d332171e728af376607"
+root_tree = "19973ba9eb81cf6cdf9be843f199b62bf8d6c132"
 compiler = "299994e3d34bfac5f40804811272735c1fc9102e"
 library = "d4ac412e3ec42df9d95c405295b93ecabd463b15"
 src/bootstrap = "464549c5dd2ced2ad4e149290e16b281f072491b"
